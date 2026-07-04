@@ -3,7 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GitHub 项目自动展示 · sily-ui</title>
+
+  <!-- GitHub mark favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%2318181b'%3E%3Cpath d='M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z'/%3E%3C/svg%3E" />
+
+  <title>sily-ui · 工程作品集</title>
 
   <!-- React -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -17,6 +21,19 @@
 
   <!-- Babel -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    @keyframes breathe {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0.35); }
+      50%      { box-shadow: 0 0 0 6px rgba(99,102,241,0); }
+    }
+    @keyframes floatUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    html { scroll-behavior: smooth; }
+    body { background: #fafafa; }
+  </style>
 </head>
 <body>
   <div id="root"></div>
@@ -27,42 +44,45 @@
       ThemeProvider, createTheme, CssBaseline,
       AppBar, Toolbar, Typography, Button, Container, Box,
       Grid, Card, CardContent, CardActions, Chip,
-      LinearProgress, Paper, Divider, CircularProgress,
-      Alert, AlertTitle, Stack
+      LinearProgress, Paper, CircularProgress,
+      Alert, AlertTitle, Stack, IconButton
     } = MaterialUI;
 
     // ============ 配置 ============
     const GITHUB_USER = 'sily-ui';
-    const CACHE_TTL = 5 * 60 * 1000; // 5 分钟缓存，缓解 GitHub 未授权限流(60次/小时)
+    const CACHE_TTL = 5 * 60 * 1000;
 
-    // ============ 浅蓝主题 ============
+    // ============ 极简高级感主题（zinc / slate 灰阶） ============
     const theme = createTheme({
       palette: {
-        primary: { main: '#69b1ff', light: '#91caff', dark: '#4096ff' },
-        secondary: { main: '#91caff' },
-        background: { default: '#ffffff', paper: '#ffffff' },
-        text: { primary: '#1f2937', secondary: '#6b7280' },
-        divider: '#e5e7eb'
+        mode: 'light',
+        primary: { main: '#18181b', light: '#27272a', dark: '#09090b' },
+        background: { default: '#fafafa', paper: '#ffffff' },
+        text: { primary: '#18181b', secondary: '#71717a' },
+        divider: 'rgba(0,0,0,0.06)'
       },
       typography: {
-        fontFamily: '"Segoe UI", "Microsoft YaHei", Roboto, sans-serif',
-        h4: { fontWeight: 700 },
+        fontFamily: '"Inter", "Segoe UI", "Microsoft YaHei", -apple-system, sans-serif',
+        h1: { fontWeight: 800, letterSpacing: '-0.03em' },
+        h2: { fontWeight: 800, letterSpacing: '-0.03em' },
+        h3: { fontWeight: 700, letterSpacing: '-0.02em' },
+        h4: { fontWeight: 700, letterSpacing: '-0.02em' },
         h5: { fontWeight: 600 },
-        h6: { fontWeight: 600 }
+        h6: { fontWeight: 600 },
+        subtitle1: { fontWeight: 500 }
       },
       shape: { borderRadius: 12 }
     });
 
-    // ============ 工具函数 ============
-    // 根据最近推送时间自动计算开发活跃度进度
+    // ============ 工具：开发活跃度（莫兰迪色系） ============
     function calcProgress(pushedAt) {
       const days = (Date.now() - new Date(pushedAt).getTime()) / 86400000;
-      if (days <= 7)   return { value: 95, color: 'success', label: '活跃维护' };
-      if (days <= 30)  return { value: 80, color: 'success', label: '活跃维护' };
-      if (days <= 90)  return { value: 60, color: 'primary', label: '稳定迭代' };
-      if (days <= 180) return { value: 40, color: 'primary', label: '稳定迭代' };
-      if (days <= 365) return { value: 25, color: 'warning', label: '休眠状态' };
-      return { value: 10, color: 'error', label: '休眠状态' };
+      if (days <= 7)   return { value: 95, bar: '#86a789', label: '活跃维护' };
+      if (days <= 30)  return { value: 80, bar: '#a3c4a8', label: '活跃维护' };
+      if (days <= 90)  return { value: 60, bar: '#8b9dc3', label: '稳定迭代' };
+      if (days <= 180) return { value: 40, bar: '#a7b0c9', label: '稳定迭代' };
+      if (days <= 365) return { value: 25, bar: '#c9a9a9', label: '休眠状态' };
+      return { value: 10, bar: '#b0a3b0', label: '休眠状态' };
     }
 
     function formatRelative(dateStr) {
@@ -79,7 +99,6 @@
       return `${Math.floor(days / 365)} 年前`;
     }
 
-    // 带缓存的 fetch，降低对 GitHub API 的请求频率
     async function fetchWithCache(key, url, force = false) {
       if (!force) {
         try {
@@ -88,7 +107,7 @@
             const { data, ts } = JSON.parse(cached);
             if (Date.now() - ts < CACHE_TTL) return data;
           }
-        } catch (e) { /* ignore */ }
+        } catch (e) {}
       }
       const res = await fetch(url);
       if (!res.ok) {
@@ -101,47 +120,51 @@
       return data;
     }
 
-    function fetchRepos(force = false) {
-      return fetchWithCache('gh_repos_v1',
-        `https://api.github.com/users/${GITHUB_USER}/repos?sort=updated&per_page=100&type=owner`, force);
-    }
-
-    // 单仓库提交记录（失败容错返回空数组，不阻断整体流程）
-    async function fetchCommits(repo, force = false) {
+    const fetchUser  = (force) => fetchWithCache('gh_user_v1',  `https://api.github.com/users/${GITHUB_USER}`, force);
+    const fetchRepos = (force) => fetchWithCache('gh_repos_v1', `https://api.github.com/users/${GITHUB_USER}/repos?sort=updated&per_page=100&type=owner`, force);
+    async function fetchCommits(repo, force) {
       try {
-        return await fetchWithCache(`gh_commits_${repo}`,
-          `https://api.github.com/repos/${GITHUB_USER}/${repo}/commits?per_page=3`, force);
+        return await fetchWithCache(`gh_commits_${repo}`, `https://api.github.com/repos/${GITHUB_USER}/${repo}/commits?per_page=3`, force);
       } catch (e) { return []; }
     }
 
-    // ============ 顶部导航栏 ============
+    // ============ 顶部导航 ============
     function NavBar({ active, setActive }) {
       const menus = [
         { label: '首页', target: 'home' },
-        { label: '项目列表', target: 'projects' },
-        { label: '更新动态', target: 'updates' }
+        { label: '作品集', target: 'projects' },
+        { label: '迭代动态', target: 'updates' }
       ];
       const scrollTo = (t) => {
         setActive(t);
         document.getElementById(t)?.scrollIntoView({ behavior: 'smooth' });
       };
       return (
-        <AppBar position="sticky" elevation={0} sx={{ bgcolor: '#fff', borderBottom: '1px solid', borderColor: 'divider' }}>
-          <Toolbar>
-            <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 700, color: 'primary.dark', letterSpacing: 0.5 }}>
-              GitHub 项目展示
-            </Typography>
+        <AppBar position="sticky" elevation={0} sx={{ bgcolor: 'rgba(250,250,250,0.85)', backdropFilter: 'blur(12px)', borderBottom: '1px solid', borderColor: 'divider' }}>
+          <Toolbar sx={{ maxWidth: 1200, mx: 'auto', width: '100%' }}>
+            <Box onClick={() => scrollTo('home')} sx={{ display: 'flex', alignItems: 'center', gap: 1, flexGrow: 1, cursor: 'pointer' }}>
+              <svg width="22" height="22" viewBox="0 0 16 16" fill="#18181b" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+              </svg>
+              <Typography sx={{ fontWeight: 700, color: '#18181b', letterSpacing: '-0.01em', fontSize: 17 }}>
+                {GITHUB_USER}
+              </Typography>
+            </Box>
             <Stack direction="row" spacing={0.5}>
               {menus.map(m => (
                 <Button
                   key={m.target}
                   onClick={() => scrollTo(m.target)}
+                  disableRipple
                   sx={{
-                    color: active === m.target ? 'primary.main' : 'text.secondary',
-                    fontWeight: active === m.target ? 700 : 500,
-                    bgcolor: active === m.target ? 'rgba(105,177,255,0.12)' : 'transparent',
+                    color: active === m.target ? '#18181b' : '#71717a',
+                    fontWeight: active === m.target ? 600 : 500,
+                    bgcolor: 'transparent',
                     borderRadius: 2,
-                    px: { xs: 1.5, sm: 2 }
+                    px: { xs: 1.5, sm: 2 },
+                    fontSize: 14,
+                    transition: 'color 0.2s',
+                    '&:hover': { bgcolor: 'rgba(0,0,0,0.04)', color: '#18181b' }
                   }}
                 >
                   {m.label}
@@ -153,38 +176,125 @@
       );
     }
 
-    // ============ 顶部 Banner ============
-    function Banner() {
+    // ============ Hero 区（网格背景 + Radial 环境光） ============
+    function Hero({ user }) {
       return (
-        <Box sx={{
-          background: 'linear-gradient(135deg, #4096ff 0%, #69b1ff 45%, #91caff 100%)',
-          color: '#fff',
-          py: { xs: 6, md: 10 },
-          textAlign: 'center',
+        <Box id="home" sx={{
           position: 'relative',
-          overflow: 'hidden'
+          pt: { xs: 8, md: 12 },
+          pb: { xs: 8, md: 10 },
+          overflow: 'hidden',
+          // 淡网格背景
+          backgroundImage: `
+            linear-gradient(rgba(0,0,0,0.025) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0,0,0,0.025) 1px, transparent 1px)
+          `,
+          backgroundSize: '40px 40px',
+          backgroundColor: '#fafafa'
         }}>
-          <Container maxWidth="md">
-            <Typography variant="h3" sx={{ fontWeight: 800, mb: 2, textShadow: '0 2px 12px rgba(0,0,0,0.12)' }}>
-              GitHub 项目自动展示页
+          {/* Radial 环境光 */}
+          <Box sx={{
+            position: 'absolute', top: '-200px', left: '50%', transform: 'translateX(-50%)',
+            width: { xs: 500, md: 900 }, height: 500, pointerEvents: 'none',
+            background: 'radial-gradient(ellipse at center, rgba(99,102,241,0.18) 0%, rgba(139,92,246,0.10) 35%, rgba(0,0,0,0) 70%)'
+          }} />
+
+          <Container maxWidth="md" sx={{ position: 'relative', textAlign: 'center' }}>
+            {/* 头像 + 账户信息 */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, mb: 5 }}>
+              <Box sx={{ position: 'relative' }}>
+                <Box sx={{
+                  position: 'absolute', inset: -4, borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899)',
+                  filter: 'blur(8px)', opacity: 0.4
+                }} />
+                {user ? (
+                  <Box component="img" src={user.avatar_url} alt={user.login}
+                    sx={{
+                      width: 88, height: 88, borderRadius: '50%', position: 'relative',
+                      border: '2px solid #fff', boxShadow: '0 4px 16px rgba(0,0,0,0.08)', objectFit: 'cover'
+                    }} />
+                ) : (
+                  <Box sx={{ width: 88, height: 88, borderRadius: '50%', bgcolor: '#e4e4e7', position: 'relative' }} />
+                )}
+              </Box>
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: '#18181b', letterSpacing: '-0.01em' }}>
+                  {user?.name || user?.login || GITHUB_USER}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                  {user?.bio || '开源爱好者 · 持续构建中'}
+                </Typography>
+              </Box>
+              {user && (
+                <Stack direction="row" spacing={1.5}>
+                  <Chip label={`${user.public_repos ?? 0} 仓库`} size="small"
+                    sx={{ bgcolor: 'rgba(0,0,0,0.04)', color: '#52525b', fontWeight: 500, border: 'none' }} />
+                  <Chip label={`${user.followers ?? 0} 关注`} size="small"
+                    sx={{ bgcolor: 'rgba(0,0,0,0.04)', color: '#52525b', fontWeight: 500, border: 'none' }} />
+                </Stack>
+              )}
+            </Box>
+
+            {/* 渐变主标题 */}
+            <Typography sx={{
+              fontSize: { xs: '2.5rem', md: '4rem' },
+              fontWeight: 800,
+              letterSpacing: '-0.04em',
+              lineHeight: 1.05,
+              mb: 2,
+              backgroundImage: 'linear-gradient(135deg, #18181b 0%, #3f3f46 40%, #6366f1 75%, #8b5cf6 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              animation: 'floatUp 0.7s ease-out'
+            }}>
+              工程进行时
             </Typography>
-            <Typography variant="h6" sx={{ opacity: 0.92, mb: 4, fontWeight: 400 }}>
-              自动同步 @{GITHUB_USER} 公开仓库与提交动态 · 无需手动维护
+
+            <Typography sx={{
+              fontSize: { xs: '1rem', md: '1.125rem' },
+              color: '#71717a',
+              maxWidth: 560, mx: 'auto', mb: 5,
+              lineHeight: 1.6,
+              animation: 'floatUp 0.8s ease-out'
+            }}>
+              持续构建与迭代的开源作品集合，数据自动同步自 GitHub，无需手动维护。
             </Typography>
-            <Button
-              variant="contained"
-              size="large"
-              href={`https://github.com/${GITHUB_USER}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              sx={{
-                bgcolor: '#fff', color: 'primary.dark', fontWeight: 700, px: 4,
-                boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-                '&:hover': { bgcolor: '#f0f7ff', transform: 'translateY(-2px)' }
-              }}
-            >
-              访问 GitHub 主页
-            </Button>
+
+            {/* 药丸按钮 */}
+            <Stack direction="row" spacing={2} justifyContent="center" sx={{ animation: 'floatUp 0.9s ease-out' }}>
+              <Button
+                href={user?.html_url || `https://github.com/${GITHUB_USER}`}
+                target="_blank" rel="noopener noreferrer"
+                disableRipple
+                sx={{
+                  borderRadius: 999, px: 3.5, py: 1.2,
+                  bgcolor: '#18181b', color: '#fff', fontSize: 14, fontWeight: 600,
+                  border: '1px solid #18181b',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.06)',
+                  transition: 'all 0.2s ease',
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: '#27272a', transform: 'scale(1.04)', boxShadow: '0 8px 24px rgba(0,0,0,0.14)' }
+                }}
+              >
+                GitHub 主页
+              </Button>
+              <Button
+                onClick={() => document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' })}
+                disableRipple
+                sx={{
+                  borderRadius: 999, px: 3.5, py: 1.2,
+                  bgcolor: '#fff', color: '#18181b', fontSize: 14, fontWeight: 600,
+                  border: '1px solid rgba(0,0,0,0.1)',
+                  transition: 'all 0.2s ease',
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: '#fafafa', borderColor: 'rgba(0,0,0,0.2)', transform: 'scale(1.04)' }
+                }}
+              >
+                浏览作品
+              </Button>
+            </Stack>
           </Container>
         </Box>
       );
@@ -193,74 +303,94 @@
     // ============ 区块标题 ============
     function SectionTitle({ title, subtitle, action }) {
       return (
-        <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 2 }}>
+        <Box sx={{ mb: 5, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 2 }}>
           <Box>
-            <Typography variant="h4" color="primary.dark" gutterBottom>{title}</Typography>
-            {subtitle && <Typography color="text.secondary">{subtitle}</Typography>}
+            <Typography variant="h4" sx={{ fontWeight: 700, color: '#18181b', letterSpacing: '-0.02em', mb: 0.5 }}>
+              {title}
+            </Typography>
+            <Typography color="text.secondary" sx={{ fontSize: 15 }}>{subtitle}</Typography>
           </Box>
           {action}
         </Box>
       );
     }
 
-    // ============ 项目卡片 ============
+    // ============ 项目卡片（Bento 风格） ============
     function ProjectCard({ repo }) {
-      const progress = calcProgress(repo.pushed_at);
+      const p = calcProgress(repo.pushed_at);
       return (
         <Card sx={{
           height: '100%', display: 'flex', flexDirection: 'column',
-          borderRadius: 3, boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-          transition: 'all 0.3s ease',
-          '&:hover': { transform: 'translateY(-6px)', boxShadow: '0 12px 28px rgba(105,177,255,0.28)' }
+          borderRadius: '16px',
+          border: '1px solid rgba(0,0,0,0.06)',
+          boxShadow: 'none',
+          bgcolor: '#fff',
+          transition: 'all 0.25s ease',
+          '&:hover': {
+            transform: 'translateY(-4px)',
+            borderColor: 'rgba(99,102,241,0.25)',
+            boxShadow: '0 0 0 1px rgba(99,102,241,0.04), 0 16px 40px rgba(99,102,241,0.08)',
+            '& .lang-chip': { bgcolor: 'rgba(99,102,241,0.10)' }
+          }
         }}>
-          <CardContent sx={{ flexGrow: 1, pb: 1 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1, gap: 1 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, color: 'primary.dark', wordBreak: 'break-word', lineHeight: 1.3 }}>
+          <CardContent sx={{ flexGrow: 1, p: 2.5, pb: 1.5 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5, gap: 1 }}>
+              <Typography sx={{ fontWeight: 600, color: '#18181b', fontSize: 16, lineHeight: 1.3, wordBreak: 'break-word', letterSpacing: '-0.01em' }}>
                 {repo.name}
               </Typography>
               {repo.language && (
                 <Chip
                   label={repo.language}
                   size="small"
-                  sx={{ bgcolor: 'rgba(105,177,255,0.14)', color: 'primary.dark', fontWeight: 500, flexShrink: 0 }}
+                  className="lang-chip"
+                  sx={{
+                    bgcolor: 'rgba(0,0,0,0.04)', color: '#52525b', fontWeight: 500, fontSize: 12,
+                    height: 24, border: 'none', flexShrink: 0, transition: 'background-color 0.25s'
+                  }}
                 />
               )}
             </Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2, minHeight: 40, lineHeight: 1.6 }}>
-              {repo.description || '暂无项目描述'}
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5, minHeight: 40, lineHeight: 1.6, fontSize: 14 }}>
+              {repo.description || '暂无描述'}
             </Typography>
           </CardContent>
 
-          <Box sx={{ px: 2.5, pb: 1.5 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-              <Typography variant="caption" color="text.secondary">开发活跃度</Typography>
-              <Typography variant="caption" color="primary.main" sx={{ fontWeight: 700 }}>
-                {progress.value}% · {progress.label}
+          <Box sx={{ px: 2.5, pb: 1 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.75 }}>
+              <Typography sx={{ fontSize: 11, color: '#a1a1aa', fontWeight: 500, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                {p.label}
+              </Typography>
+              <Typography sx={{ fontSize: 11, color: '#71717a', fontWeight: 600 }}>
+                {p.value}%
               </Typography>
             </Box>
             <LinearProgress
               variant="determinate"
-              value={progress.value}
-              color={progress.color}
-              sx={{ height: 6, borderRadius: 3 }}
+              value={p.value}
+              sx={{
+                height: 3, borderRadius: 2, bgcolor: 'rgba(0,0,0,0.04)',
+                '& .MuiLinearProgress-bar': { borderRadius: 2, bgcolor: p.bar }
+              }}
             />
           </Box>
 
-          <CardActions sx={{ justifyContent: 'space-between', px: 2.5, pb: 2, pt: 1 }}>
-            <Stack direction="row" spacing={1.5} sx={{ fontSize: 13, color: 'text.secondary', alignItems: 'center' }}>
-              <span>★ {repo.stargazers_count}</span>
-              <span>·</span>
-              <span>更新 {formatRelative(repo.pushed_at)}</span>
+          <CardActions sx={{ justifyContent: 'space-between', px: 2.5, pb: 2.5, pt: 1.5, alignItems: 'center' }}>
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', fontSize: 12.5, color: '#71717a' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Box component="span" sx={{ fontSize: 13 }}>★</Box>
+                <span>{repo.stargazers_count}</span>
+              </Box>
+              <Box sx={{ width: 3, height: 3, borderRadius: '50%', bgcolor: '#d4d4d8' }} />
+              <span>{formatRelative(repo.pushed_at)}</span>
             </Stack>
             <Button
-              size="small"
-              variant="outlined"
-              color="primary"
-              href={repo.html_url}
-              target="_blank"
-              rel="noopener noreferrer"
+              size="small" href={repo.html_url} target="_blank" rel="noopener noreferrer" disableRipple
+              sx={{
+                minWidth: 'auto', color: '#71717a', fontSize: 13, fontWeight: 500, px: 1,
+                '&:hover': { bgcolor: 'transparent', color: '#18181b' }
+              }}
             >
-              GitHub
+              查看 →
             </Button>
           </CardActions>
         </Card>
@@ -271,77 +401,82 @@
     function LanguageFilter({ languages, current, onChange }) {
       return (
         <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
-          <Chip
-            label="全部"
-            onClick={() => onChange('all')}
-            color={current === 'all' ? 'primary' : 'default'}
-            variant={current === 'all' ? 'filled' : 'outlined'}
-          />
+          <Chip label="全部" onClick={() => onChange('all')} disableRipple
+            sx={{
+              height: 28, fontSize: 13, fontWeight: 500,
+              bgcolor: current === 'all' ? '#18181b' : 'transparent',
+              color: current === 'all' ? '#fff' : '#52525b',
+              border: '1px solid', borderColor: current === 'all' ? '#18181b' : 'rgba(0,0,0,0.1)',
+              '&:hover': { bgcolor: current === 'all' ? '#27272a' : 'rgba(0,0,0,0.04)' }
+            }} />
           {languages.map(lang => (
-            <Chip
-              key={lang}
-              label={lang}
-              onClick={() => onChange(lang)}
-              color={current === lang ? 'primary' : 'default'}
-              variant={current === lang ? 'filled' : 'outlined'}
-            />
+            <Chip key={lang} label={lang} onClick={() => onChange(lang)} disableRipple
+              sx={{
+                height: 28, fontSize: 13, fontWeight: 500,
+                bgcolor: current === lang ? '#18181b' : 'transparent',
+                color: current === lang ? '#fff' : '#52525b',
+                border: '1px solid', borderColor: current === lang ? '#18181b' : 'rgba(0,0,0,0.1)',
+                '&:hover': { bgcolor: current === lang ? '#27272a' : 'rgba(0,0,0,0.04)' }
+              }} />
           ))}
         </Stack>
       );
     }
 
-    // ============ 更新动态时间线（自实现，无需 MUI Lab） ============
+    // ============ 迭代动态时间线（窄居中、呼吸灯圆点） ============
     function UpdatesTimeline({ commits }) {
       if (commits.length === 0) {
         return (
-          <Paper elevation={0} sx={{ p: 4, textAlign: 'center', border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
+          <Paper elevation={0} sx={{ p: 5, textAlign: 'center', border: '1px solid', borderColor: 'divider', borderRadius: '16px', bgcolor: '#fff' }}>
             <Typography color="text.secondary">暂无最近提交记录</Typography>
           </Paper>
         );
       }
       return (
-        <Box sx={{ pl: { xs: 1, sm: 2 } }}>
+        <Box sx={{ maxWidth: 560, mx: 'auto' }}>
           {commits.map((c, i) => {
             const isLast = i === commits.length - 1;
             return (
-              <Box key={c.sha + i} sx={{ display: 'flex', position: 'relative', pb: isLast ? 0 : 3 }}>
-                {/* 左侧时间线轴：圆点 + 连接线 */}
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mr: 2 }}>
+              <Box key={c.sha + i} sx={{ display: 'flex', position: 'relative', pb: isLast ? 0 : 4 }}>
+                {/* 时间线轴 */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mr: 3 }}>
                   <Box sx={{
-                    width: 12, height: 12, borderRadius: '50%',
-                    bgcolor: 'primary.main', flexShrink: 0, mt: '6px',
-                    boxShadow: '0 0 0 4px rgba(105,177,255,0.15)'
+                    width: 10, height: 10, borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                    flexShrink: 0, mt: '8px',
+                    animation: 'breathe 2.4s ease-in-out infinite'
                   }} />
                   {!isLast && (
-                    <Box sx={{
-                      width: 2, flex: 1, bgcolor: 'rgba(105,177,255,0.3)', mt: '4px'
-                    }} />
+                    <Box sx={{ width: 1.5, flex: 1, bgcolor: 'rgba(0,0,0,0.06)', mt: '4px', mb: '-4px' }} />
                   )}
                 </Box>
 
-                {/* 右侧内容 */}
+                {/* 时间线明信片 */}
                 <Paper elevation={0} sx={{
-                  flex: 1, p: 2, mb: isLast ? 0 : 1,
-                  border: '1px solid', borderColor: 'divider', borderRadius: 2,
-                  transition: 'all 0.2s',
-                  '&:hover': { borderColor: 'primary.light', boxShadow: '0 2px 12px rgba(105,177,255,0.12)' }
+                  flex: 1, p: 2.5, mb: isLast ? 0 : 0,
+                  border: '1px solid', borderColor: 'divider', borderRadius: '12px',
+                  bgcolor: '#fff',
+                  transition: 'all 0.2s ease',
+                  '&:hover': { borderColor: 'rgba(99,102,241,0.3)', transform: 'translateX(2px)' }
                 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: 'text.primary', wordBreak: 'break-word', lineHeight: 1.5 }}>
+                  <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#18181b', lineHeight: 1.55, wordBreak: 'break-word', mb: 2.5 }}>
                     {c.message.split('\n')[0]}
                   </Typography>
                   <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
                     <Chip
-                      label={c.repo}
-                      size="small"
-                      component="a"
-                      clickable
-                      href={c.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      sx={{ bgcolor: 'rgba(105,177,255,0.14)', color: 'primary.dark', fontWeight: 500 }}
-                    />
-                    <Typography variant="caption" color="text.secondary">
-                      {c.author} · {formatRelative(c.date)}
+                      label={c.repo} size="small" component="a" clickable
+                      href={c.url} target="_blank" rel="noopener noreferrer"
+                      sx={{
+                        height: 22, fontSize: 11.5, fontWeight: 500,
+                        bgcolor: 'rgba(99,102,241,0.08)', color: '#4f46e5', border: 'none'
+                      }} />
+                    <Box sx={{ width: 3, height: 3, borderRadius: '50%', bgcolor: '#d4d4d8' }} />
+                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: 12 }}>
+                      {c.author}
+                    </Typography>
+                    <Box sx={{ width: 3, height: 3, borderRadius: '50%', bgcolor: '#d4d4d8' }} />
+                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: 12 }}>
+                      {formatRelative(c.date)}
                     </Typography>
                   </Stack>
                 </Paper>
@@ -355,6 +490,7 @@
     // ============ 主应用 ============
     function App() {
       const [active, setActive] = useState('home');
+      const [user, setUser] = useState(null);
       const [repos, setRepos] = useState([]);
       const [commits, setCommits] = useState([]);
       const [loading, setLoading] = useState(true);
@@ -362,15 +498,13 @@
       const [filter, setFilter] = useState('all');
 
       const load = useCallback(async (force = false) => {
-        setLoading(true);
-        setError(null);
+        setLoading(true); setError(null);
         try {
-          const reposData = await fetchRepos(force);
-          // 按最近推送时间倒序（最新更新的项目排在最前）
+          const [u, reposData] = await Promise.all([fetchUser(force), fetchRepos(force)]);
+          setUser(u);
           const sorted = [...reposData].sort((a, b) => new Date(b.pushed_at) - new Date(a.pushed_at));
           setRepos(sorted);
 
-          // 仅为最近更新的 Top 8 仓库拉取提交记录，避免请求过多触发限流
           const topRepos = sorted.slice(0, 8);
           const results = await Promise.all(topRepos.map(r => fetchCommits(r.name, force)));
           const allCommits = [];
@@ -387,7 +521,7 @@
             });
           });
           allCommits.sort((a, b) => new Date(b.date) - new Date(a.date));
-          setCommits(allCommits.slice(0, 20));
+          setCommits(allCommits.slice(0, 18));
         } catch (e) {
           setError(e.message || '数据加载失败');
         } finally {
@@ -397,7 +531,6 @@
 
       useEffect(() => { load(false); }, [load]);
 
-      // 滚动监听：高亮当前导航项
       useEffect(() => {
         const handler = () => {
           const sections = ['home', 'projects', 'updates'];
@@ -419,40 +552,39 @@
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <NavBar active={active} setActive={setActive} />
+          <Hero user={user} />
 
-          <Box id="home">
-            <Banner />
-          </Box>
-
-          {/* 项目展示区 */}
-          <Container id="projects" maxWidth="lg" sx={{ py: { xs: 5, md: 8 } }}>
+          {/* 作品集 */}
+          <Container id="projects" maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
             <SectionTitle
-              title="项目列表"
+              title="作品集"
               subtitle={`共 ${repos.length} 个公开仓库 · 按最近更新自动排序`}
               action={
-                <Button onClick={() => load(true)} disabled={loading} size="small" variant="outlined" color="primary">
-                  {loading ? '刷新中…' : '刷新数据'}
+                <Button onClick={() => load(true)} disabled={loading} size="small" disableRipple
+                  sx={{
+                    color: '#71717a', fontSize: 13, fontWeight: 500, textTransform: 'none',
+                    border: '1px solid', borderColor: 'divider', borderRadius: 999, px: 2,
+                    '&:hover': { bgcolor: '#fafafa', borderColor: 'rgba(0,0,0,0.15)', color: '#18181b' }
+                  }}>
+                  {loading ? '同步中…' : '↻ 刷新'}
                 </Button>
               }
             />
 
             {loading ? (
-              <Box sx={{ textAlign: 'center', py: 8 }}>
-                <CircularProgress color="primary" />
-                <Typography color="text.secondary" sx={{ mt: 2 }}>正在从 GitHub 拉取仓库数据…</Typography>
+              <Box sx={{ textAlign: 'center', py: 10 }}>
+                <CircularProgress size={28} sx={{ color: '#18181b' }} />
+                <Typography color="text.secondary" sx={{ mt: 2, fontSize: 14 }}>正在从 GitHub 拉取数据…</Typography>
               </Box>
             ) : error ? (
-              <Alert
-                severity="warning"
-                sx={{ mb: 3, borderRadius: 2 }}
-                action={<Button color="inherit" size="small" onClick={() => load(true)}>重试</Button>}
-              >
-                <AlertTitle>数据加载失败</AlertTitle>
-                {error}。GitHub 未授权接口限流为 60 次/小时，请稍后再刷新页面。
+              <Alert severity="warning" sx={{ mb: 3, borderRadius: '12px' }}
+                action={<Button color="inherit" size="small" onClick={() => load(true)} sx={{ fontSize: 13 }}>重试</Button>}>
+                <AlertTitle sx={{ fontSize: 14 }}>数据加载失败</AlertTitle>
+                {error}。GitHub 未授权接口限流为 60 次/小时，请稍后再试。
               </Alert>
             ) : (
               <>
-                <Box sx={{ mb: 3 }}>
+                <Box sx={{ mb: 4 }}>
                   <LanguageFilter languages={languages} current={filter} onChange={setFilter} />
                 </Box>
                 <Grid container spacing={3}>
@@ -463,22 +595,29 @@
                   ))}
                 </Grid>
                 {filtered.length === 0 && (
-                  <Typography sx={{ textAlign: 'center', py: 4 }} color="text.secondary">
-                    该语言分类下暂无项目
+                  <Typography sx={{ textAlign: 'center', py: 6, color: '#a1a1aa' }} fontSize={14}>
+                    该分类下暂无项目
                   </Typography>
                 )}
               </>
             )}
           </Container>
 
-          {/* 更新动态区 */}
-          <Box id="updates" sx={{ bgcolor: '#f8fbff', py: { xs: 5, md: 8 } }}>
-            <Container maxWidth="md">
-              <SectionTitle title="更新动态" subtitle="自动同步最近代码提交记录 · 按时间倒序" />
+          {/* 迭代动态 */}
+          <Box id="updates" sx={{ bgcolor: '#fafafa', borderTop: '1px solid', borderColor: 'divider', py: { xs: 6, md: 10 } }}>
+            <Container maxWidth="lg">
+              <Box sx={{ textAlign: 'center', mb: 6 }}>
+                <Typography variant="h4" sx={{ fontWeight: 700, color: '#18181b', letterSpacing: '-0.02em', mb: 0.5 }}>
+                  迭代动态
+                </Typography>
+                <Typography color="text.secondary" sx={{ fontSize: 15 }}>
+                  最近代码提交记录 · 按时间倒序自动同步
+                </Typography>
+              </Box>
               {loading ? (
-                <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress /></Box>
+                <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress size={28} sx={{ color: '#18181b' }} /></Box>
               ) : error ? (
-                <Alert severity="warning" sx={{ borderRadius: 2 }}>提交动态加载失败：{error}</Alert>
+                <Alert severity="warning" sx={{ borderRadius: '12px', maxWidth: 560, mx: 'auto' }}>提交动态加载失败：{error}</Alert>
               ) : (
                 <UpdatesTimeline commits={commits} />
               )}
@@ -486,9 +625,9 @@
           </Box>
 
           {/* 页脚 */}
-          <Box sx={{ bgcolor: 'primary.dark', color: '#fff', py: 3, textAlign: 'center' }}>
-            <Typography variant="body2" sx={{ opacity: 0.85 }}>
-              © {new Date().getFullYear()} · 数据自动同步自 GitHub 公开 API · Powered by MUI v5
+          <Box sx={{ bgcolor: '#18181b', color: '#a1a1aa', py: 4, textAlign: 'center' }}>
+            <Typography variant="body2" sx={{ fontSize: 13 }}>
+              © {new Date().getFullYear()} · {GITHUB_USER} · 数据自动同步自 GitHub API
             </Typography>
           </Box>
         </ThemeProvider>
