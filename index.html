@@ -15,13 +15,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <link rel="stylesheet" href="https://unpkg.com/@mui/material@5/umd/material-ui.production.min.css" />
-  <script src="https://unpkg.com/@mui/material@5/umd/material-ui.production.min.js"></script>
-  <script src="https://unpkg.com/@emotion/react@11/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/@emotion/styled@11/umd/styled.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- jsDelivr: 正确 Content-Type，避免 Chromium ORB 拦截 unpkg text/plain MIME -->
+  <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
+  <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mui/material@5.18.0/umd/material-ui.production.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@mui/material@5.18.0/umd/material-ui.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emotion/react@11.14.0/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emotion/styled@11.14.0/umd/styled.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.26.4/babel.min.js"></script>
 
   <style>
     html { scroll-behavior: smooth; }
