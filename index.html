@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>项目展示主页</title>
+
+  <!-- React -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <!-- MUI v5 -->
+  <link rel="stylesheet" href="https://unpkg.com/@mui/material@5/umd/material-ui.production.min.css" />
+  <script src="https://unpkg.com/@mui/material@5/umd/material-ui.production.min.js"></script>
+  <script src="https://unpkg.com/@emotion/react@11/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/@emotion/styled@11/umd/styled.production.min.js"></script>
+
+  <!-- Babel -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+    const {
+      ThemeProvider, createTheme, CssBaseline,
+      AppBar, Toolbar, Typography, Button, Container, Box,
+      Grid, Card, CardContent, CardActions, Chip, IconButton,
+      LinearProgress, Paper, Divider, useScrollTrigger
+    } = MaterialUI;
+
+    // 浅蓝商务风主题
+    const theme = createTheme({
+      palette: {
+        primary: { main: '#4A90E2', light: '#7BB3F0', dark: '#357ABD' },
+        secondary: { main: '#64B5F6' },
+        background: { default: '#F5F9FC', paper: '#FFFFFF' },
+        text: { primary: '#2C3E50', secondary: '#5A6C7D' }
+      },
+      typography: {
+        fontFamily: '"Segoe UI", "Microsoft YaHei", Roboto, sans-serif',
+        h4: { fontWeight: 700 },
+        h5: { fontWeight: 600 },
+        h6: { fontWeight: 600 }
+      },
+      shape: { borderRadius: 10 }
+    });
+
+    // ============ 占位数据（可自行替换文本、链接、进度数值） ============
+    const navMenus = [
+      { label: '首页', target: 'home' },
+      { label: '项目列表', target: 'projects' },
+      { label: '更新动态', target: 'updates' }
+    ];
+
+    const projects = [
+      {
+        name: '项目名称占位一',
+        desc: '此处为项目简短描述占位文本，简要介绍项目用途与核心功能。',
+        tags: ['React', 'TypeScript', 'MUI'],
+        github: 'https://github.com/your-name/your-repo-1',
+        progress: 75
+      },
+      {
+        name: '项目名称占位二',
+        desc: '此处为项目简短描述占位文本，简要介绍项目用途与核心功能。',
+        tags: ['Node.js', 'Express', 'MongoDB'],
+        github: 'https://github.com/your-name/your-repo-2',
+        progress: 40
+      },
+      {
+        name: '项目名称占位三',
+        desc: '此处为项目简短描述占位文本，简要介绍项目用途与核心功能。',
+        tags: ['Vue', 'Vite', 'Pinia'],
+        github: 'https://github.com/your-name/your-repo-3',
+        progress: 90
+      },
+      {
+        name: '项目名称占位四',
+        desc: '此处为项目简短描述占位文本，简要介绍项目用途与核心功能。',
+        tags: ['Python', 'FastAPI', 'Docker'],
+        github: 'https://github.com/your-name/your-repo-4',
+        progress: 20
+      }
+    ];
+
+    const updates = [
+      { name: '项目名称占位一', progress: 75, note: '更新说明占位：完成核心模块开发。' },
+      { name: '项目名称占位二', progress: 40, note: '更新说明占位：接口联调进行中。' },
+      { name: '项目名称占位三', progress: 90, note: '更新说明占位：测试与优化阶段。' },
+      { name: '项目名称占位四', progress: 20, note: '更新说明占位：基础架构搭建中。' }
+    ];
+
+    // ============ 顶部导航栏 ============
+    function NavBar({ active, setActive }) {
+      const scrollTo = (target) => {
+        setActive(target);
+        const el = document.getElementById(target);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+
+      return (
+        <AppBar position="sticky" elevation={1} color="primary">
+          <Toolbar>
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 700, letterSpacing: 1 }}>
+              项目展示
+            </Typography>
+            <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 1 }}>
+              {navMenus.map((m) => (
+                <Button
+                  key={m.target}
+                  color="inherit"
+                  onClick={() => scrollTo(m.target)}
+                  sx={{
+                    fontWeight: active === m.target ? 700 : 400,
+                    borderBottom: active === m.target ? '2px solid #fff' : '2px solid transparent',
+                    borderRadius: 0
+                  }}
+                >
+                  {m.label}
+                </Button>
+              ))}
+            </Box>
+            <Box sx={{ display: { xs: 'flex', sm: 'none' }, gap: 0.5 }}>
+              {navMenus.map((m) => (
+                <Button
+                  key={m.target}
+                  color="inherit"
+                  size="small"
+                  onClick={() => scrollTo(m.target)}
+                  sx={{ fontWeight: active === m.target ? 700 : 400, minWidth: 'auto', px: 1 }}
+                >
+                  {m.label}
+                </Button>
+              ))}
+            </Box>
+          </Toolbar>
+        </AppBar>
+      );
+    }
+
+    // ============ 区块标题 ============
+    function SectionTitle({ title, subtitle }) {
+      return (
+        <Box sx={{ mb: 4, textAlign: 'center' }}>
+          <Typography variant="h4" color="primary" gutterBottom>
+            {title}
+          </Typography>
+          {subtitle && (
+            <Typography variant="body1" color="text.secondary">
+              {subtitle}
+            </Typography>
+          )}
+          <Divider sx={{ width: 60, mx: 'auto', mt: 2, borderWidth: 2, borderColor: 'primary.main', borderRadius: 2 }} />
+        </Box>
+      );
+    }
+
+    // ============ 项目卡片 ============
+    function ProjectCard({ project }) {
+      return (
+        <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', transition: 'all 0.3s', '&:hover': { boxShadow: 6, transform: 'translateY(-4px)' } }}>
+          <CardContent sx={{ flexGrow: 1 }}>
+            <Typography variant="h6" color="primary.dark" gutterBottom>
+              {project.name}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2, minHeight: 40 }}>
+              {project.desc}
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {project.tags.map((tag) => (
+                <Chip key={tag} label={tag} size="small" color="primary" variant="outlined" />
+              ))}
+            </Box>
+          </CardContent>
+          <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
+            <Button
+              size="small"
+              variant="contained"
+              color="primary"
+              href={project.github}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GitHub
+            </Button>
+            <Typography variant="caption" color="text.secondary">
+              进度 {project.progress}%
+            </Typography>
+          </CardActions>
+        </Card>
+      );
+    }
+
+    // ============ 进度条项 ============
+    function ProgressItem({ item }) {
+      return (
+        <Paper elevation={0} sx={{ p: 2.5, mb: 2, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              {item.name}
+            </Typography>
+            <Typography variant="body2" color="primary" sx={{ fontWeight: 700 }}>
+              {item.progress}%
+            </Typography>
+          </Box>
+          <LinearProgress
+            variant="determinate"
+            value={item.progress}
+            color={item.progress >= 80 ? 'success' : item.progress >= 50 ? 'primary' : 'secondary'}
+            sx={{ height: 10, borderRadius: 5, mb: 1.5 }}
+          />
+          <Typography variant="body2" color="text.secondary">
+            {item.note}
+          </Typography>
+        </Paper>
+      );
+    }
+
+    // ============ 主应用 ============
+    function App() {
+      const [active, setActive] = useState('home');
+
+      React.useEffect(() => {
+        const handler = () => {
+          const sections = navMenus.map((m) => m.target);
+          let current = 'home';
+          for (const s of sections) {
+            const el = document.getElementById(s);
+            if (el && el.getBoundingClientRect().top <= 120) current = s;
+          }
+          setActive(current);
+        };
+        window.addEventListener('scroll', handler);
+        return () => window.removeEventListener('scroll', handler);
+      }, []);
+
+      return (
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <NavBar active={active} setActive={setActive} />
+
+          {/* 首页 Hero */}
+          <Box
+            id="home"
+            sx={{
+              minHeight: { xs: 400, md: 480 },
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'linear-gradient(135deg, #4A90E2 0%, #7BB3F0 100%)',
+              color: '#fff',
+              textAlign: 'center',
+              py: 6
+            }}
+          >
+            <Container maxWidth="md">
+              <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 800, textShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
+                项目展示主页
+              </Typography>
+              <Typography variant="h6" sx={{ opacity: 0.92, mb: 4, fontWeight: 400 }}>
+                专注于项目展示与开发进度跟踪 · 浅蓝简约商务风
+              </Typography>
+              <Button
+                variant="contained"
+                size="large"
+                onClick={() => document.getElementById('projects').scrollIntoView({ behavior: 'smooth' })}
+                sx={{
+                  bgcolor: '#fff',
+                  color: 'primary.main',
+                  fontWeight: 700,
+                  px: 4,
+                  '&:hover': { bgcolor: '#E3F2FD' }
+                }}
+              >
+                查看项目
+              </Button>
+            </Container>
+          </Box>
+
+          {/* 项目展示区 */}
+          <Container id="projects" maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
+            <SectionTitle title="项目列表" subtitle="以下为个人开发项目展示" />
+            <Grid container spacing={3}>
+              {projects.map((p) => (
+                <Grid item xs={12} sm={6} md={4} key={p.name}>
+                  <ProjectCard project={p} />
+                </Grid>
+              ))}
+            </Grid>
+          </Container>
+
+          {/* 更新动态区 */}
+          <Box id="updates" sx={{ bgcolor: 'background.paper', py: { xs: 6, md: 8 } }}>
+            <Container maxWidth="md">
+              <SectionTitle title="更新动态" subtitle="各项目当前开发完成进度" />
+              {updates.map((u) => (
+                <ProgressItem key={u.name} item={u} />
+              ))}
+            </Container>
+          </Box>
+
+          {/* 页脚 */}
+          <Box sx={{ bgcolor: 'primary.dark', color: '#fff', py: 3, textAlign: 'center' }}>
+            <Typography variant="body2" sx={{ opacity: 0.85 }}>
+              © {new Date().getFullYear()} 项目展示主页 · Powered by MUI v5
+            </Typography>
+          </Box>
+        </ThemeProvider>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
