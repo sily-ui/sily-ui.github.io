@@ -32,7 +32,7 @@
       to   { opacity: 1; transform: translateY(0); }
     }
     html { scroll-behavior: smooth; }
-    body { background: #fafafa; }
+    body { background: #ffffff; }
   </style>
 </head>
 <body>
@@ -52,21 +52,21 @@
     const GITHUB_USER = 'sily-ui';
     const CACHE_TTL = 5 * 60 * 1000;
 
-    // ============ 极简高级感主题（zinc / slate 灰阶） ============
+    // ============ 极简高级感主题（Apple/Stripe/Vercel 纯色风） ============
     const theme = createTheme({
       palette: {
         mode: 'light',
-        primary: { main: '#18181b', light: '#27272a', dark: '#09090b' },
-        background: { default: '#fafafa', paper: '#ffffff' },
-        text: { primary: '#18181b', secondary: '#71717a' },
-        divider: 'rgba(0,0,0,0.06)'
+        primary: { main: '#111827', light: '#1f2937', dark: '#030712' },
+        background: { default: '#ffffff', paper: '#ffffff' },
+        text: { primary: '#111827', secondary: '#6B7280' },
+        divider: '#E5E7EB'
       },
       typography: {
         fontFamily: '"Inter", "Segoe UI", "Microsoft YaHei", -apple-system, sans-serif',
-        h1: { fontWeight: 800, letterSpacing: '-0.03em' },
-        h2: { fontWeight: 800, letterSpacing: '-0.03em' },
-        h3: { fontWeight: 700, letterSpacing: '-0.02em' },
-        h4: { fontWeight: 700, letterSpacing: '-0.02em' },
+        h1: { fontWeight: 800, letterSpacing: '-0.04em' },
+        h2: { fontWeight: 800, letterSpacing: '-0.04em' },
+        h3: { fontWeight: 700, letterSpacing: '-0.03em' },
+        h4: { fontWeight: 700, letterSpacing: '-0.03em' },
         h5: { fontWeight: 600 },
         h6: { fontWeight: 600 },
         subtitle1: { fontWeight: 500 }
@@ -140,13 +140,13 @@
         document.getElementById(t)?.scrollIntoView({ behavior: 'smooth' });
       };
       return (
-        <AppBar position="sticky" elevation={0} sx={{ bgcolor: 'rgba(250,250,250,0.85)', backdropFilter: 'blur(12px)', borderBottom: '1px solid', borderColor: 'divider' }}>
+        <AppBar position="sticky" elevation={0} sx={{ bgcolor: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(12px)', borderBottom: '1px solid', borderColor: 'divider' }}>
           <Toolbar sx={{ maxWidth: 1200, mx: 'auto', width: '100%' }}>
             <Box onClick={() => scrollTo('home')} sx={{ display: 'flex', alignItems: 'center', gap: 1, flexGrow: 1, cursor: 'pointer' }}>
-              <svg width="22" height="22" viewBox="0 0 16 16" fill="#18181b" xmlns="http://www.w3.org/2000/svg">
+              <svg width="22" height="22" viewBox="0 0 16 16" fill="#111827" xmlns="http://www.w3.org/2000/svg">
                 <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
               </svg>
-              <Typography sx={{ fontWeight: 700, color: '#18181b', letterSpacing: '-0.01em', fontSize: 17 }}>
+              <Typography sx={{ fontWeight: 700, color: '#111827', letterSpacing: '-0.01em', fontSize: 17 }}>
                 {GITHUB_USER}
               </Typography>
             </Box>
@@ -157,14 +157,14 @@
                   onClick={() => scrollTo(m.target)}
                   disableRipple
                   sx={{
-                    color: active === m.target ? '#18181b' : '#71717a',
+                    color: active === m.target ? '#111827' : '#6B7280',
                     fontWeight: active === m.target ? 600 : 500,
                     bgcolor: 'transparent',
                     borderRadius: 2,
                     px: { xs: 1.5, sm: 2 },
                     fontSize: 14,
                     transition: 'color 0.2s',
-                    '&:hover': { bgcolor: 'rgba(0,0,0,0.04)', color: '#18181b' }
+                    '&:hover': { bgcolor: 'rgba(0,0,0,0.03)', color: '#111827' }
                   }}
                 >
                   {m.label}
@@ -176,77 +176,56 @@
       );
     }
 
-    // ============ Hero 区（网格背景 + Radial 环境光） ============
+    // ============ Hero 区（纯色 + 大留白） ============
     function Hero({ user }) {
       return (
         <Box id="home" sx={{
           position: 'relative',
-          pt: { xs: 8, md: 12 },
-          pb: { xs: 8, md: 10 },
+          pt: { xs: 12, md: 18 },
+          pb: { xs: 12, md: 16 },
           overflow: 'hidden',
-          // 淡网格背景
-          backgroundImage: `
-            linear-gradient(rgba(0,0,0,0.025) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0,0,0,0.025) 1px, transparent 1px)
-          `,
-          backgroundSize: '40px 40px',
-          backgroundColor: '#fafafa'
+          bgcolor: '#ffffff'
         }}>
-          {/* Radial 环境光 */}
-          <Box sx={{
-            position: 'absolute', top: '-200px', left: '50%', transform: 'translateX(-50%)',
-            width: { xs: 500, md: 900 }, height: 500, pointerEvents: 'none',
-            background: 'radial-gradient(ellipse at center, rgba(99,102,241,0.18) 0%, rgba(139,92,246,0.10) 35%, rgba(0,0,0,0) 70%)'
-          }} />
-
           <Container maxWidth="md" sx={{ position: 'relative', textAlign: 'center' }}>
-            {/* 头像 + 账户信息 */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, mb: 5 }}>
+            {/* 头像 + 账户信息（移除渐变光晕，回归纯净） */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, mb: 10 }}>
               <Box sx={{ position: 'relative' }}>
-                <Box sx={{
-                  position: 'absolute', inset: -4, borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899)',
-                  filter: 'blur(8px)', opacity: 0.4
-                }} />
                 {user ? (
                   <Box component="img" src={user.avatar_url} alt={user.login}
                     sx={{
-                      width: 88, height: 88, borderRadius: '50%', position: 'relative',
-                      border: '2px solid #fff', boxShadow: '0 4px 16px rgba(0,0,0,0.08)', objectFit: 'cover'
+                      width: 96, height: 96, borderRadius: '50%', position: 'relative',
+                      border: '1px solid #E5E7EB', objectFit: 'cover'
                     }} />
                 ) : (
-                  <Box sx={{ width: 88, height: 88, borderRadius: '50%', bgcolor: '#e4e4e7', position: 'relative' }} />
+                  <Box sx={{ width: 96, height: 96, borderRadius: '50%', bgcolor: '#F9FAFB', border: '1px solid #E5E7EB' }} />
                 )}
               </Box>
               <Box>
-                <Typography variant="h6" sx={{ fontWeight: 700, color: '#18181b', letterSpacing: '-0.01em' }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>
                   {user?.name || user?.login || GITHUB_USER}
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                <Typography sx={{ mt: 0.5, color: '#6B7280', fontSize: 14 }}>
                   {user?.bio || '开源爱好者 · 持续构建中'}
                 </Typography>
               </Box>
               {user && (
                 <Stack direction="row" spacing={1.5}>
                   <Chip label={`${user.public_repos ?? 0} 仓库`} size="small"
-                    sx={{ bgcolor: 'rgba(0,0,0,0.04)', color: '#52525b', fontWeight: 500, border: 'none' }} />
+                    sx={{ bgcolor: '#F9FAFB', color: '#374151', fontWeight: 500, border: '1px solid #E5E7EB' }} />
                   <Chip label={`${user.followers ?? 0} 关注`} size="small"
-                    sx={{ bgcolor: 'rgba(0,0,0,0.04)', color: '#52525b', fontWeight: 500, border: 'none' }} />
+                    sx={{ bgcolor: '#F9FAFB', color: '#374151', fontWeight: 500, border: '1px solid #E5E7EB' }} />
                 </Stack>
               )}
             </Box>
 
-            {/* 渐变主标题 */}
+            {/* 主标题：墨黑 #111827，更大字号更深字重 */}
             <Typography sx={{
-              fontSize: { xs: '2.5rem', md: '4rem' },
+              fontSize: { xs: '3rem', md: '5rem' },
               fontWeight: 800,
-              letterSpacing: '-0.04em',
+              letterSpacing: '-0.045em',
               lineHeight: 1.05,
-              mb: 5,
-              backgroundImage: 'linear-gradient(135deg, #18181b 0%, #3f3f46 40%, #6366f1 75%, #8b5cf6 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
+              mb: 6,
+              color: '#111827',
               animation: 'floatUp 0.7s ease-out'
             }}>
               工程进行时
@@ -259,13 +238,13 @@
                 target="_blank" rel="noopener noreferrer"
                 disableRipple
                 sx={{
-                  borderRadius: 999, px: 3.5, py: 1.2,
-                  bgcolor: '#18181b', color: '#fff', fontSize: 14, fontWeight: 600,
-                  border: '1px solid #18181b',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.06)',
+                  borderRadius: 999, px: 4, py: 1.3,
+                  bgcolor: '#111827', color: '#fff', fontSize: 14, fontWeight: 600,
+                  border: '1px solid #111827',
+                  boxShadow: 'none',
                   transition: 'all 0.2s ease',
                   textTransform: 'none',
-                  '&:hover': { bgcolor: '#27272a', transform: 'scale(1.04)', boxShadow: '0 8px 24px rgba(0,0,0,0.14)' }
+                  '&:hover': { bgcolor: '#030712', transform: 'scale(1.03)' }
                 }}
               >
                 GitHub 主页
@@ -274,12 +253,13 @@
                 onClick={() => document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' })}
                 disableRipple
                 sx={{
-                  borderRadius: 999, px: 3.5, py: 1.2,
-                  bgcolor: '#fff', color: '#18181b', fontSize: 14, fontWeight: 600,
-                  border: '1px solid rgba(0,0,0,0.1)',
+                  borderRadius: 999, px: 4, py: 1.3,
+                  bgcolor: '#fff', color: '#111827', fontSize: 14, fontWeight: 600,
+                  border: '1px solid #E5E7EB',
+                  boxShadow: 'none',
                   transition: 'all 0.2s ease',
                   textTransform: 'none',
-                  '&:hover': { bgcolor: '#fafafa', borderColor: 'rgba(0,0,0,0.2)', transform: 'scale(1.04)' }
+                  '&:hover': { bgcolor: '#F9FAFB', borderColor: '#D1D5DB', transform: 'scale(1.03)' }
                 }}
               >
                 浏览作品
@@ -293,39 +273,39 @@
     // ============ 区块标题 ============
     function SectionTitle({ title, subtitle, action }) {
       return (
-        <Box sx={{ mb: 5, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 2 }}>
+        <Box sx={{ mb: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 2 }}>
           <Box>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: '#18181b', letterSpacing: '-0.02em', mb: 0.5 }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, color: '#111827', letterSpacing: '-0.03em', mb: 1 }}>
               {title}
             </Typography>
-            <Typography color="text.secondary" sx={{ fontSize: 15 }}>{subtitle}</Typography>
+            <Typography sx={{ color: '#6B7280', fontSize: 15 }}>{subtitle}</Typography>
           </Box>
           {action}
         </Box>
       );
     }
 
-    // ============ 项目卡片（Bento 风格） ============
+    // ============ 项目卡片（极简纯色描边风） ============
     function ProjectCard({ repo }) {
       const p = calcProgress(repo.pushed_at);
       return (
         <Card sx={{
           height: '100%', display: 'flex', flexDirection: 'column',
           borderRadius: '16px',
-          border: '1px solid rgba(0,0,0,0.06)',
+          border: '1px solid #E5E7EB',
           boxShadow: 'none',
-          bgcolor: '#fff',
+          bgcolor: '#ffffff',
           transition: 'all 0.25s ease',
           '&:hover': {
-            transform: 'translateY(-4px)',
-            borderColor: 'rgba(99,102,241,0.25)',
-            boxShadow: '0 0 0 1px rgba(99,102,241,0.04), 0 16px 40px rgba(99,102,241,0.08)',
-            '& .lang-chip': { bgcolor: 'rgba(99,102,241,0.10)' }
+            transform: 'translateY(-3px)',
+            borderColor: '#9CA3AF',
+            boxShadow: 'none',
+            '& .lang-chip': { bgcolor: '#F3F4F6' }
           }
         }}>
           <CardContent sx={{ flexGrow: 1, p: 2.75, pb: 1.5 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5, gap: 1 }}>
-              <Typography sx={{ fontWeight: 600, color: '#18181b', fontSize: 17, lineHeight: 1.3, wordBreak: 'break-word', letterSpacing: '-0.01em' }}>
+              <Typography sx={{ fontWeight: 600, color: '#111827', fontSize: 17, lineHeight: 1.3, wordBreak: 'break-word', letterSpacing: '-0.01em' }}>
                 {repo.name}
               </Typography>
               {repo.language && (
@@ -334,23 +314,23 @@
                   size="small"
                   className="lang-chip"
                   sx={{
-                    bgcolor: 'rgba(0,0,0,0.04)', color: '#52525b', fontWeight: 500, fontSize: 12.5,
-                    height: 25, border: 'none', flexShrink: 0, transition: 'background-color 0.25s'
+                    bgcolor: '#F9FAFB', color: '#374151', fontWeight: 500, fontSize: 12.5,
+                    height: 25, border: '1px solid #E5E7EB', flexShrink: 0, transition: 'background-color 0.25s'
                   }}
                 />
               )}
             </Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5, minHeight: 44, lineHeight: 1.65, fontSize: 14.5 }}>
+            <Typography sx={{ mb: 2.5, minHeight: 44, lineHeight: 1.65, fontSize: 14.5, color: '#6B7280' }}>
               {repo.description || '暂无描述'}
             </Typography>
           </CardContent>
 
           <Box sx={{ px: 2.75, pb: 1 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.75 }}>
-              <Typography sx={{ fontSize: 11.5, color: '#a1a1aa', fontWeight: 500, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              <Typography sx={{ fontSize: 11.5, color: '#9CA3AF', fontWeight: 500, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                 {p.label}
               </Typography>
-              <Typography sx={{ fontSize: 11.5, color: '#71717a', fontWeight: 600 }}>
+              <Typography sx={{ fontSize: 11.5, color: '#6B7280', fontWeight: 600 }}>
                 {p.value}%
               </Typography>
             </Box>
@@ -358,26 +338,26 @@
               variant="determinate"
               value={p.value}
               sx={{
-                height: 3, borderRadius: 2, bgcolor: 'rgba(0,0,0,0.04)',
+                height: 3, borderRadius: 2, bgcolor: '#F3F4F6',
                 '& .MuiLinearProgress-bar': { borderRadius: 2, bgcolor: p.bar }
               }}
             />
           </Box>
 
           <CardActions sx={{ justifyContent: 'space-between', px: 2.75, pb: 2.5, pt: 1.5, alignItems: 'center' }}>
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', fontSize: 13.5, color: '#71717a' }}>
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', fontSize: 13.5, color: '#6B7280' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <Box component="span" sx={{ fontSize: 14 }}>★</Box>
                 <span>{repo.stargazers_count}</span>
               </Box>
-              <Box sx={{ width: 3, height: 3, borderRadius: '50%', bgcolor: '#d4d4d8' }} />
+              <Box sx={{ width: 3, height: 3, borderRadius: '50%', bgcolor: '#D1D5DB' }} />
               <span>{formatRelative(repo.pushed_at)}</span>
             </Stack>
             <Button
               size="small" href={repo.html_url} target="_blank" rel="noopener noreferrer" disableRipple
               sx={{
-                minWidth: 'auto', color: '#71717a', fontSize: 13.5, fontWeight: 500, px: 1,
-                '&:hover': { bgcolor: 'transparent', color: '#18181b' }
+                minWidth: 'auto', color: '#6B7280', fontSize: 13.5, fontWeight: 500, px: 1,
+                '&:hover': { bgcolor: 'transparent', color: '#111827' }
               }}
             >
               查看 →
@@ -393,32 +373,32 @@
         <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
           <Chip label="全部" onClick={() => onChange('all')} disableRipple
             sx={{
-              height: 28, fontSize: 13, fontWeight: 500,
-              bgcolor: current === 'all' ? '#18181b' : 'transparent',
-              color: current === 'all' ? '#fff' : '#52525b',
-              border: '1px solid', borderColor: current === 'all' ? '#18181b' : 'rgba(0,0,0,0.1)',
-              '&:hover': { bgcolor: current === 'all' ? '#27272a' : 'rgba(0,0,0,0.04)' }
+              height: 30, fontSize: 13, fontWeight: 500,
+              bgcolor: current === 'all' ? '#111827' : '#ffffff',
+              color: current === 'all' ? '#fff' : '#374151',
+              border: '1px solid', borderColor: current === 'all' ? '#111827' : '#E5E7EB',
+              '&:hover': { bgcolor: current === 'all' ? '#1f2937' : '#F9FAFB' }
             }} />
           {languages.map(lang => (
             <Chip key={lang} label={lang} onClick={() => onChange(lang)} disableRipple
               sx={{
-                height: 28, fontSize: 13, fontWeight: 500,
-                bgcolor: current === lang ? '#18181b' : 'transparent',
-                color: current === lang ? '#fff' : '#52525b',
-                border: '1px solid', borderColor: current === lang ? '#18181b' : 'rgba(0,0,0,0.1)',
-                '&:hover': { bgcolor: current === lang ? '#27272a' : 'rgba(0,0,0,0.04)' }
+                height: 30, fontSize: 13, fontWeight: 500,
+                bgcolor: current === lang ? '#111827' : '#ffffff',
+                color: current === lang ? '#fff' : '#374151',
+                border: '1px solid', borderColor: current === lang ? '#111827' : '#E5E7EB',
+                '&:hover': { bgcolor: current === lang ? '#1f2937' : '#F9FAFB' }
               }} />
           ))}
         </Stack>
       );
     }
 
-    // ============ 迭代动态时间线（双栏布局，节省空间） ============
+    // ============ 迭代动态时间线（双栏布局，纯色风格） ============
     function UpdatesTimeline({ commits }) {
       if (commits.length === 0) {
         return (
-          <Paper elevation={0} sx={{ p: 5, textAlign: 'center', border: '1px solid', borderColor: 'divider', borderRadius: '16px', bgcolor: '#fff' }}>
-            <Typography color="text.secondary">暂无最近提交记录</Typography>
+          <Paper elevation={0} sx={{ p: 5, textAlign: 'center', border: '1px solid #E5E7EB', borderRadius: '16px', bgcolor: '#ffffff' }}>
+            <Typography sx={{ color: '#6B7280' }}>暂无最近提交记录</Typography>
           </Paper>
         );
       }
@@ -431,28 +411,27 @@
             const isLast = i === items.length - 1;
             return (
               <Box key={c.sha + i} sx={{ display: 'flex', position: 'relative', pb: isLast ? 0 : 3 }}>
-                {/* 时间线轴 */}
+                {/* 时间线轴（纯墨黑圆点，无渐变光晕） */}
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mr: 2.5 }}>
                   <Box sx={{
-                    width: 9, height: 9, borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                    flexShrink: 0, mt: '7px',
-                    animation: 'breathe 2.4s ease-in-out infinite'
+                    width: 8, height: 8, borderRadius: '50%',
+                    bgcolor: '#111827',
+                    flexShrink: 0, mt: '8px'
                   }} />
                   {!isLast && (
-                    <Box sx={{ width: 1.5, flex: 1, bgcolor: 'rgba(0,0,0,0.06)', mt: '4px', mb: '-4px' }} />
+                    <Box sx={{ width: 1, flex: 1, bgcolor: '#E5E7EB', mt: '4px', mb: '-4px' }} />
                   )}
                 </Box>
 
-                {/* 时间线明信片 */}
+                {/* 时间线卡片（纯白描边，无阴影） */}
                 <Paper elevation={0} sx={{
                   flex: 1, p: 2,
-                  border: '1px solid', borderColor: 'divider', borderRadius: '12px',
-                  bgcolor: '#fff',
+                  border: '1px solid #E5E7EB', borderRadius: '12px',
+                  bgcolor: '#ffffff',
                   transition: 'all 0.2s ease',
-                  '&:hover': { borderColor: 'rgba(99,102,241,0.3)', transform: 'translateX(2px)' }
+                  '&:hover': { borderColor: '#9CA3AF', transform: 'translateX(2px)' }
                 }}>
-                  <Typography sx={{ fontSize: 13.5, fontWeight: 600, color: '#18181b', lineHeight: 1.55, wordBreak: 'break-word', mb: 2 }}>
+                  <Typography sx={{ fontSize: 13.5, fontWeight: 600, color: '#111827', lineHeight: 1.55, wordBreak: 'break-word', mb: 2 }}>
                     {c.message.split('\n')[0]}
                   </Typography>
                   <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
@@ -461,14 +440,14 @@
                       href={c.url} target="_blank" rel="noopener noreferrer"
                       sx={{
                         height: 21, fontSize: 11, fontWeight: 500,
-                        bgcolor: 'rgba(99,102,241,0.08)', color: '#4f46e5', border: 'none'
+                        bgcolor: '#F9FAFB', color: '#374151', border: '1px solid #E5E7EB'
                       }} />
-                    <Box sx={{ width: 3, height: 3, borderRadius: '50%', bgcolor: '#d4d4d8' }} />
-                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: 11.5 }}>
+                    <Box sx={{ width: 3, height: 3, borderRadius: '50%', bgcolor: '#D1D5DB' }} />
+                    <Typography sx={{ color: '#6B7280', fontSize: 11.5 }}>
                       {c.author}
                     </Typography>
-                    <Box sx={{ width: 3, height: 3, borderRadius: '50%', bgcolor: '#d4d4d8' }} />
-                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: 11.5 }}>
+                    <Box sx={{ width: 3, height: 3, borderRadius: '50%', bgcolor: '#D1D5DB' }} />
+                    <Typography sx={{ color: '#6B7280', fontSize: 11.5 }}>
                       {formatRelative(c.date)}
                     </Typography>
                   </Stack>
@@ -561,9 +540,9 @@
               action={
                 <Button onClick={() => load(true)} disabled={loading} size="small" disableRipple
                   sx={{
-                    color: '#71717a', fontSize: 13, fontWeight: 500, textTransform: 'none',
-                    border: '1px solid', borderColor: 'divider', borderRadius: 999, px: 2,
-                    '&:hover': { bgcolor: '#fafafa', borderColor: 'rgba(0,0,0,0.15)', color: '#18181b' }
+                    color: '#6B7280', fontSize: 13, fontWeight: 500, textTransform: 'none',
+                    border: '1px solid #E5E7EB', borderRadius: 999, px: 2,
+                    '&:hover': { bgcolor: '#F9FAFB', borderColor: '#D1D5DB', color: '#111827' }
                   }}>
                   {loading ? '同步中…' : '↻ 刷新'}
                 </Button>
@@ -572,8 +551,8 @@
 
             {loading ? (
               <Box sx={{ textAlign: 'center', py: 10 }}>
-                <CircularProgress size={28} sx={{ color: '#18181b' }} />
-                <Typography color="text.secondary" sx={{ mt: 2, fontSize: 14 }}>正在从 GitHub 拉取数据…</Typography>
+                <CircularProgress size={28} sx={{ color: '#111827' }} />
+                <Typography sx={{ mt: 2, fontSize: 14, color: '#6B7280' }}>正在从 GitHub 拉取数据…</Typography>
               </Box>
             ) : error ? (
               <Alert severity="warning" sx={{ mb: 3, borderRadius: '12px' }}
@@ -594,7 +573,7 @@
                   ))}
                 </Grid>
                 {filtered.length === 0 && (
-                  <Typography sx={{ textAlign: 'center', py: 6, color: '#a1a1aa' }} fontSize={14}>
+                  <Typography sx={{ textAlign: 'center', py: 6, color: '#9CA3AF' }} fontSize={14}>
                     该分类下暂无项目
                   </Typography>
                 )}
@@ -603,18 +582,18 @@
           </Container>
 
           {/* 迭代动态 */}
-          <Box id="updates" sx={{ bgcolor: '#fafafa', borderTop: '1px solid', borderColor: 'divider', py: { xs: 6, md: 10 } }}>
+          <Box id="updates" sx={{ bgcolor: '#ffffff', borderTop: '1px solid #E5E7EB', py: { xs: 8, md: 12 } }}>
             <Container maxWidth="lg">
-              <Box sx={{ textAlign: 'center', mb: 6 }}>
-                <Typography variant="h4" sx={{ fontWeight: 700, color: '#18181b', letterSpacing: '-0.02em', mb: 0.5 }}>
+              <Box sx={{ textAlign: 'center', mb: 8 }}>
+                <Typography variant="h4" sx={{ fontWeight: 700, color: '#111827', letterSpacing: '-0.03em', mb: 1 }}>
                   迭代动态
                 </Typography>
-                <Typography color="text.secondary" sx={{ fontSize: 15 }}>
+                <Typography sx={{ color: '#6B7280', fontSize: 15 }}>
                   最近代码提交记录 · 按时间倒序自动同步
                 </Typography>
               </Box>
               {loading ? (
-                <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress size={28} sx={{ color: '#18181b' }} /></Box>
+                <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress size={28} sx={{ color: '#111827' }} /></Box>
               ) : error ? (
                 <Alert severity="warning" sx={{ borderRadius: '12px', maxWidth: 560, mx: 'auto' }}>提交动态加载失败：{error}</Alert>
               ) : (
@@ -624,7 +603,7 @@
           </Box>
 
           {/* 页脚 */}
-          <Box sx={{ bgcolor: '#18181b', color: '#a1a1aa', py: 4, textAlign: 'center' }}>
+          <Box sx={{ bgcolor: '#111827', color: '#9CA3AF', py: 5, textAlign: 'center' }}>
             <Typography variant="body2" sx={{ fontSize: 13 }}>
               © {new Date().getFullYear()} · {GITHUB_USER} · 数据自动同步自 GitHub API
             </Typography>
