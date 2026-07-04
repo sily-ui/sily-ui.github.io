@@ -242,7 +242,7 @@
               fontWeight: 800,
               letterSpacing: '-0.04em',
               lineHeight: 1.05,
-              mb: 2,
+              mb: 5,
               backgroundImage: 'linear-gradient(135deg, #18181b 0%, #3f3f46 40%, #6366f1 75%, #8b5cf6 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -250,16 +250,6 @@
               animation: 'floatUp 0.7s ease-out'
             }}>
               工程进行时
-            </Typography>
-
-            <Typography sx={{
-              fontSize: { xs: '1rem', md: '1.125rem' },
-              color: '#71717a',
-              maxWidth: 560, mx: 'auto', mb: 5,
-              lineHeight: 1.6,
-              animation: 'floatUp 0.8s ease-out'
-            }}>
-              持续构建与迭代的开源作品集合，数据自动同步自 GitHub，无需手动维护。
             </Typography>
 
             {/* 药丸按钮 */}
@@ -333,9 +323,9 @@
             '& .lang-chip': { bgcolor: 'rgba(99,102,241,0.10)' }
           }
         }}>
-          <CardContent sx={{ flexGrow: 1, p: 2.5, pb: 1.5 }}>
+          <CardContent sx={{ flexGrow: 1, p: 2.75, pb: 1.5 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5, gap: 1 }}>
-              <Typography sx={{ fontWeight: 600, color: '#18181b', fontSize: 16, lineHeight: 1.3, wordBreak: 'break-word', letterSpacing: '-0.01em' }}>
+              <Typography sx={{ fontWeight: 600, color: '#18181b', fontSize: 17, lineHeight: 1.3, wordBreak: 'break-word', letterSpacing: '-0.01em' }}>
                 {repo.name}
               </Typography>
               {repo.language && (
@@ -344,23 +334,23 @@
                   size="small"
                   className="lang-chip"
                   sx={{
-                    bgcolor: 'rgba(0,0,0,0.04)', color: '#52525b', fontWeight: 500, fontSize: 12,
-                    height: 24, border: 'none', flexShrink: 0, transition: 'background-color 0.25s'
+                    bgcolor: 'rgba(0,0,0,0.04)', color: '#52525b', fontWeight: 500, fontSize: 12.5,
+                    height: 25, border: 'none', flexShrink: 0, transition: 'background-color 0.25s'
                   }}
                 />
               )}
             </Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5, minHeight: 40, lineHeight: 1.6, fontSize: 14 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5, minHeight: 44, lineHeight: 1.65, fontSize: 14.5 }}>
               {repo.description || '暂无描述'}
             </Typography>
           </CardContent>
 
-          <Box sx={{ px: 2.5, pb: 1 }}>
+          <Box sx={{ px: 2.75, pb: 1 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.75 }}>
-              <Typography sx={{ fontSize: 11, color: '#a1a1aa', fontWeight: 500, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              <Typography sx={{ fontSize: 11.5, color: '#a1a1aa', fontWeight: 500, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                 {p.label}
               </Typography>
-              <Typography sx={{ fontSize: 11, color: '#71717a', fontWeight: 600 }}>
+              <Typography sx={{ fontSize: 11.5, color: '#71717a', fontWeight: 600 }}>
                 {p.value}%
               </Typography>
             </Box>
@@ -374,10 +364,10 @@
             />
           </Box>
 
-          <CardActions sx={{ justifyContent: 'space-between', px: 2.5, pb: 2.5, pt: 1.5, alignItems: 'center' }}>
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', fontSize: 12.5, color: '#71717a' }}>
+          <CardActions sx={{ justifyContent: 'space-between', px: 2.75, pb: 2.5, pt: 1.5, alignItems: 'center' }}>
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', fontSize: 13.5, color: '#71717a' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Box component="span" sx={{ fontSize: 13 }}>★</Box>
+                <Box component="span" sx={{ fontSize: 14 }}>★</Box>
                 <span>{repo.stargazers_count}</span>
               </Box>
               <Box sx={{ width: 3, height: 3, borderRadius: '50%', bgcolor: '#d4d4d8' }} />
@@ -386,7 +376,7 @@
             <Button
               size="small" href={repo.html_url} target="_blank" rel="noopener noreferrer" disableRipple
               sx={{
-                minWidth: 'auto', color: '#71717a', fontSize: 13, fontWeight: 500, px: 1,
+                minWidth: 'auto', color: '#71717a', fontSize: 13.5, fontWeight: 500, px: 1,
                 '&:hover': { bgcolor: 'transparent', color: '#18181b' }
               }}
             >
@@ -423,7 +413,7 @@
       );
     }
 
-    // ============ 迭代动态时间线（窄居中、呼吸灯圆点） ============
+    // ============ 迭代动态时间线（双栏布局，节省空间） ============
     function UpdatesTimeline({ commits }) {
       if (commits.length === 0) {
         return (
@@ -432,18 +422,21 @@
           </Paper>
         );
       }
-      return (
-        <Box sx={{ maxWidth: 560, mx: 'auto' }}>
-          {commits.map((c, i) => {
-            const isLast = i === commits.length - 1;
+      const half = Math.ceil(commits.length / 2);
+      const leftCol = commits.slice(0, half);
+      const rightCol = commits.slice(half);
+      const renderTimeline = (items) => (
+        <Box>
+          {items.map((c, i) => {
+            const isLast = i === items.length - 1;
             return (
-              <Box key={c.sha + i} sx={{ display: 'flex', position: 'relative', pb: isLast ? 0 : 4 }}>
+              <Box key={c.sha + i} sx={{ display: 'flex', position: 'relative', pb: isLast ? 0 : 3 }}>
                 {/* 时间线轴 */}
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mr: 3 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mr: 2.5 }}>
                   <Box sx={{
-                    width: 10, height: 10, borderRadius: '50%',
+                    width: 9, height: 9, borderRadius: '50%',
                     background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                    flexShrink: 0, mt: '8px',
+                    flexShrink: 0, mt: '7px',
                     animation: 'breathe 2.4s ease-in-out infinite'
                   }} />
                   {!isLast && (
@@ -453,13 +446,13 @@
 
                 {/* 时间线明信片 */}
                 <Paper elevation={0} sx={{
-                  flex: 1, p: 2.5, mb: isLast ? 0 : 0,
+                  flex: 1, p: 2,
                   border: '1px solid', borderColor: 'divider', borderRadius: '12px',
                   bgcolor: '#fff',
                   transition: 'all 0.2s ease',
                   '&:hover': { borderColor: 'rgba(99,102,241,0.3)', transform: 'translateX(2px)' }
                 }}>
-                  <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#18181b', lineHeight: 1.55, wordBreak: 'break-word', mb: 2.5 }}>
+                  <Typography sx={{ fontSize: 13.5, fontWeight: 600, color: '#18181b', lineHeight: 1.55, wordBreak: 'break-word', mb: 2 }}>
                     {c.message.split('\n')[0]}
                   </Typography>
                   <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
@@ -467,15 +460,15 @@
                       label={c.repo} size="small" component="a" clickable
                       href={c.url} target="_blank" rel="noopener noreferrer"
                       sx={{
-                        height: 22, fontSize: 11.5, fontWeight: 500,
+                        height: 21, fontSize: 11, fontWeight: 500,
                         bgcolor: 'rgba(99,102,241,0.08)', color: '#4f46e5', border: 'none'
                       }} />
                     <Box sx={{ width: 3, height: 3, borderRadius: '50%', bgcolor: '#d4d4d8' }} />
-                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: 12 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: 11.5 }}>
                       {c.author}
                     </Typography>
                     <Box sx={{ width: 3, height: 3, borderRadius: '50%', bgcolor: '#d4d4d8' }} />
-                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: 12 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: 11.5 }}>
                       {formatRelative(c.date)}
                     </Typography>
                   </Stack>
@@ -483,6 +476,12 @@
               </Box>
             );
           })}
+        </Box>
+      );
+      return (
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, maxWidth: 1000, mx: 'auto' }}>
+          {renderTimeline(leftCol)}
+          {renderTimeline(rightCol)}
         </Box>
       );
     }
@@ -555,7 +554,7 @@
           <Hero user={user} />
 
           {/* 作品集 */}
-          <Container id="projects" maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
+          <Container id="projects" maxWidth="xl" sx={{ py: { xs: 6, md: 10 }, px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
             <SectionTitle
               title="作品集"
               subtitle={`共 ${repos.length} 个公开仓库 · 按最近更新自动排序`}
@@ -589,7 +588,7 @@
                 </Box>
                 <Grid container spacing={3}>
                   {filtered.map(repo => (
-                    <Grid item xs={12} sm={6} md={4} key={repo.id}>
+                    <Grid item xs={12} sm={6} md={4} lg={3} key={repo.id}>
                       <ProjectCard repo={repo} />
                     </Grid>
                   ))}
