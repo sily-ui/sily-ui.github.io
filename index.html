@@ -100,31 +100,52 @@
     }
 
     async function fetchWithCache(key, url, force = false) {
-      if (!force) {
+      // force 刷新时优先返回旧缓存（避免限流期间丢失已有数据）
+      const readCache = () => {
         try {
           const cached = localStorage.getItem(key);
-          if (cached) {
-            const { data, ts } = JSON.parse(cached);
-            if (Date.now() - ts < CACHE_TTL) return data;
+          if (!cached) return null;
+          const { data, ts } = JSON.parse(cached);
+          return { data, ts };
+        } catch (e) { return null; }
+      };
+      const writeCache = (data) => {
+        try { localStorage.setItem(key, JSON.stringify({ data, ts: Date.now() })); } catch (e) {}
+      };
+
+      if (!force) {
+        const c = readCache();
+        if (c && Date.now() - c.ts < CACHE_TTL) return c.data;
+      }
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) {
+          if (res.status === 403 || res.status === 429) {
+            // 限流：若有旧缓存就用旧数据，避免页面崩溃
+            const c = readCache();
+            if (c) return c.data;
+            throw new Error('GitHub rate-limited, try again in a few minutes');
           }
-        } catch (e) {}
+          if (res.status === 404) throw new Error('user not found');
+          throw new Error(`request failed (${res.status})`);
+        }
+        const data = await res.json();
+        writeCache(data);
+        return data;
+      } catch (e) {
+        // 网络异常：若有旧缓存就降级返回
+        const c = readCache();
+        if (c) return c.data;
+        throw e;
       }
-      const res = await fetch(url);
-      if (!res.ok) {
-        if (res.status === 403) throw new Error('GitHub rate-limited, try again in a few minutes');
-        if (res.status === 404) throw new Error('user not found');
-        throw new Error(`request failed (${res.status})`);
-      }
-      const data = await res.json();
-      try { localStorage.setItem(key, JSON.stringify({ data, ts: Date.now() })); } catch (e) {}
-      return data;
     }
 
-    const fetchUser  = (f) => fetchWithCache('gh_user_v2',  `https://api.github.com/users/${GITHUB_USER}`, f);
-    const fetchRepos = (f) => fetchWithCache('gh_repos_v2', `https://api.github.com/users/${GITHUB_USER}/repos?sort=updated&per_page=100&type=owner`, f);
+    const fetchUser  = (f) => fetchWithCache('gh_user_v3',  `https://api.github.com/users/${GITHUB_USER}`, f);
+    const fetchRepos = (f) => fetchWithCache('gh_repos_v3', `https://api.github.com/users/${GITHUB_USER}/repos?sort=updated&per_page=100&type=owner`, f);
     async function fetchCommits(repo, f) {
       try {
-        return await fetchWithCache(`gh_c_${repo}`, `https://api.github.com/repos/${GITHUB_USER}/${repo}/commits?per_page=3`, f);
+        return await fetchWithCache(`gh_c3_${repo}`, `https://api.github.com/repos/${GITHUB_USER}/${repo}/commits?per_page=5`, f);
       } catch (e) { return []; }
     }
 
@@ -159,7 +180,7 @@
                 <svg width="18" height="18" viewBox="0 0 16 16" fill="#1A2332" xmlns="http://www.w3.org/2000/svg">
                   <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
                 </svg>
-                <Box className="font-mono" sx={{ fontSize: 13, color: '#1A2332', fontWeight: 500 }}>
+                <Box className="font-mono" sx={{ fontSize: 14, color: '#1A2332', fontWeight: 500 }}>
                   {GITHUB_USER}
                 </Box>
               </Box>
@@ -175,7 +196,7 @@
                       fontWeight: active === m.target ? 600 : 400,
                       bgcolor: 'transparent',
                       minWidth: 'auto', px: 1.5, py: 0.5,
-                      fontSize: 12,
+                      fontSize: 13,
                       borderRadius: 1,
                       textTransform: 'none',
                       position: 'relative',
@@ -222,17 +243,17 @@
                     <Box sx={{ width: 56, height: 56, borderRadius: '50%', bgcolor: '#E1E6EC' }} />
                   )}
                   <Box>
-                    <Box className="font-mono" sx={{ fontSize: 13, color: '#5B6B7F', mb: 0.25 }}>
+                    <Box className="font-mono" sx={{ fontSize: 14, color: '#5B6B7F', mb: 0.25 }}>
                       @{handle}
                     </Box>
-                    <Box className="font-display" sx={{ fontSize: 18, fontWeight: 600, color: '#1A2332' }}>
+                    <Box className="font-display" sx={{ fontSize: 20, fontWeight: 600, color: '#1A2332' }}>
                       {user?.name || handle}
                     </Box>
                   </Box>
                 </Box>
 
                 <Typography className="font-display" sx={{
-                  fontSize: { xs: '2.5rem', md: '3.5rem' },
+                  fontSize: { xs: '3rem', md: '4rem' },
                   fontWeight: 700,
                   letterSpacing: '-0.03em',
                   lineHeight: 1.05,
@@ -243,7 +264,7 @@
                   <Box component="span" sx={{ color: '#6B8E9F' }}>with React.</Box>
                 </Typography>
 
-                <Box className="font-mono" sx={{ fontSize: 13, color: '#5B6B7F', mb: 5, maxWidth: 380, lineHeight: 1.7 }}>
+                <Box className="font-mono" sx={{ fontSize: 14, color: '#5B6B7F', mb: 5, maxWidth: 400, lineHeight: 1.7 }}>
                   {user?.bio || 'open-source work, synced from github. this page updates itself — no manual edits.'}
                 </Box>
 
@@ -255,7 +276,7 @@
                     className="font-mono"
                     sx={{
                       bgcolor: '#1A2332', color: '#F5F7FA',
-                      fontSize: 12, fontWeight: 500, textTransform: 'none',
+                      fontSize: 13, fontWeight: 500, textTransform: 'none',
                       px: 2.5, py: 1, borderRadius: 1,
                       boxShadow: 'none',
                       '&:hover': { bgcolor: '#2A3548' }
@@ -269,7 +290,7 @@
                     className="font-mono"
                     sx={{
                       bgcolor: 'transparent', color: '#1A2332',
-                      fontSize: 12, fontWeight: 500, textTransform: 'none',
+                      fontSize: 13, fontWeight: 500, textTransform: 'none',
                       px: 2.5, py: 1, borderRadius: 1,
                       border: '1px solid #E1E6EC',
                       '&:hover': { bgcolor: '#EEF2F6', borderColor: '#C4CDD6' }
@@ -280,7 +301,7 @@
                 </Box>
 
                 {user && (
-                  <Box className="font-mono" sx={{ mt: 5, display: 'flex', gap: 3, fontSize: 12, color: '#5B6B7F' }}>
+                  <Box className="font-mono" sx={{ mt: 5, display: 'flex', gap: 3, fontSize: 13, color: '#5B6B7F' }}>
                     <Box><Box component="span" sx={{ color: '#1A2332', fontWeight: 600 }}>{user.public_repos ?? 0}</Box> repos</Box>
                     <Box><Box component="span" sx={{ color: '#1A2332', fontWeight: 600 }}>{user.followers ?? 0}</Box> followers</Box>
                     <Box><Box component="span" sx={{ color: '#1A2332', fontWeight: 600 }}>{user.following ?? 0}</Box> following</Box>
@@ -300,23 +321,23 @@
               }}>
                 <Box sx={{ px: 2, py: 1.25, borderBottom: '1px solid #E1E6EC', display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#C4956C' }} />
-                  <Box className="font-mono" sx={{ fontSize: 11, color: '#5B6B7F' }}>
+                  <Box className="font-mono" sx={{ fontSize: 12, color: '#5B6B7F' }}>
                     {latestCommit ? formatRelative(latestCommit.date) : '—'} · main
                   </Box>
                 </Box>
                 <Box sx={{ p: 2.5 }}>
-                  <Box className="font-mono" sx={{ fontSize: 11, color: '#8AA6B5', mb: 1.5 }}>
+                  <Box className="font-mono" sx={{ fontSize: 12, color: '#8AA6B5', mb: 1.5 }}>
                     $ git log -1
                   </Box>
                   {latestCommit ? (
                     <>
-                      <Box className="font-mono" sx={{ fontSize: 12, color: '#6B8E9F', mb: 1 }}>
+                      <Box className="font-mono" sx={{ fontSize: 13, color: '#6B8E9F', mb: 1 }}>
                         commit <Box component="span" sx={{ color: '#1A2332' }}>{shortSha(latestCommit.sha)}</Box>
                       </Box>
-                      <Box className="font-mono" sx={{ fontSize: 12, color: '#1A2332', mb: 1.5, lineHeight: 1.6, wordBreak: 'break-word' }}>
+                      <Box className="font-mono" sx={{ fontSize: 13, color: '#1A2332', mb: 1.5, lineHeight: 1.6, wordBreak: 'break-word' }}>
                         {latestCommit.message.split('\n')[0]}
                       </Box>
-                      <Box className="font-mono" sx={{ fontSize: 11, color: '#5B6B7F', display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+                      <Box className="font-mono" sx={{ fontSize: 12, color: '#5B6B7F', display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
                         <Box component="a" href={latestCommit.url} target="_blank" rel="noopener noreferrer"
                           sx={{ color: '#6B8E9F', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
                           {latestCommit.repo}
@@ -326,7 +347,7 @@
                       </Box>
                     </>
                   ) : (
-                    <Box className="font-mono" sx={{ fontSize: 12, color: '#8AA6B5' }}>
+                    <Box className="font-mono" sx={{ fontSize: 13, color: '#8AA6B5' }}>
                       loading latest commit…
                     </Box>
                   )}
@@ -342,16 +363,16 @@
     function SectionHead({ label, count, hint, action }) {
       return (
         <Box sx={{ mb: 4, display: 'flex', alignItems: 'baseline', gap: 2, flexWrap: 'wrap' }}>
-          <Box className="font-mono" sx={{ fontSize: 12, color: '#6B8E9F', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          <Box className="font-mono" sx={{ fontSize: 13, color: '#6B8E9F', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
             {label}
           </Box>
           {count !== undefined && (
-            <Box className="font-mono" sx={{ fontSize: 12, color: '#8AA6B5' }}>
+            <Box className="font-mono" sx={{ fontSize: 13, color: '#8AA6B5' }}>
               {count}
             </Box>
           )}
           {hint && (
-            <Box className="font-mono" sx={{ fontSize: 12, color: '#8AA6B5', mr: 'auto' }}>
+            <Box className="font-mono" sx={{ fontSize: 13, color: '#8AA6B5', mr: 'auto' }}>
               · {hint}
             </Box>
           )}
@@ -385,19 +406,19 @@
         >
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 0.5 }}>
-              <Box className="font-display repo-name" sx={{ fontSize: 15, fontWeight: 600, color: '#1A2332' }}>
+              <Box className="font-display repo-name" sx={{ fontSize: 16, fontWeight: 600, color: '#1A2332' }}>
                 {repo.name}
               </Box>
               {repo.language && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: langDot(repo.language) }} />
-                  <Box className="font-mono" sx={{ fontSize: 11, color: '#5B6B7F' }}>
+                  <Box className="font-mono" sx={{ fontSize: 12, color: '#5B6B7F' }}>
                     {repo.language}
                   </Box>
                 </Box>
               )}
             </Box>
-            <Box sx={{ fontSize: 13, color: '#5B6B7F', lineHeight: 1.5, mb: 1.25 }}>
+            <Box sx={{ fontSize: 14, color: '#5B6B7F', lineHeight: 1.55, mb: 1.25 }}>
               {repo.description || 'no description'}
             </Box>
             {/* 细线进度 + 状态呼吸点 */}
@@ -416,7 +437,7 @@
                     }} />
                   )}
                 </Box>
-                <Box className="font-mono" sx={{ fontSize: 10.5, color: p.bar, fontWeight: 500 }}>
+                <Box className="font-mono" sx={{ fontSize: 11.5, color: p.bar, fontWeight: 500 }}>
                   {p.label}
                 </Box>
               </Box>
@@ -428,13 +449,13 @@
             display: 'flex', alignItems: 'center', gap: 2.5,
             justifyContent: { xs: 'flex-start', sm: 'flex-end' }
           }}>
-            <Box className="font-mono" sx={{ fontSize: 12, color: '#FBBF24', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Box className="font-mono" sx={{ fontSize: 13, color: '#FBBF24', display: 'flex', alignItems: 'center', gap: 0.5 }}>
               ★ {repo.stargazers_count}
             </Box>
-            <Box className="font-mono" sx={{ fontSize: 11, color: '#8AA6B5' }}>
+            <Box className="font-mono" sx={{ fontSize: 12, color: '#8AA6B5' }}>
               {formatRelative(repo.pushed_at)}
             </Box>
-            <Box className="font-mono repo-arrow" sx={{ fontSize: 13, color: '#5B6B7F' }}>→</Box>
+            <Box className="font-mono repo-arrow" sx={{ fontSize: 14, color: '#5B6B7F' }}>→</Box>
           </Box>
         </Box>
       );
@@ -457,7 +478,7 @@
           className="font-mono"
           sx={{
             cursor: 'pointer',
-            fontSize: 11,
+            fontSize: 12,
             px: 1.5, py: 0.5,
             borderRadius: 1,
             color: active ? '#F5F7FA' : '#5B6B7F',
@@ -511,18 +532,18 @@
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 0.5 }}>
-                      <Box className="font-mono" sx={{ fontSize: 11, color: '#6B8E9F', fontWeight: 500 }}>
+                      <Box className="font-mono" sx={{ fontSize: 12, color: '#6B8E9F', fontWeight: 500 }}>
                         {shortSha(c.sha)}
                       </Box>
                       <Box sx={{ width: 3, height: 3, borderRadius: '50%', bgcolor: '#C4CDD6' }} />
-                      <Box className="font-mono" sx={{ fontSize: 11, color: '#5B6B7F' }}>
+                      <Box className="font-mono" sx={{ fontSize: 12, color: '#5B6B7F' }}>
                         {c.repo}
                       </Box>
-                      <Box className="font-mono" sx={{ ml: 'auto', fontSize: 11, color: '#8AA6B5' }}>
+                      <Box className="font-mono" sx={{ ml: 'auto', fontSize: 12, color: '#8AA6B5' }}>
                         {formatRelative(c.date)}
                       </Box>
                     </Box>
-                    <Box sx={{ fontSize: 13, color: '#1A2332', lineHeight: 1.55, wordBreak: 'break-word' }}>
+                    <Box sx={{ fontSize: 14, color: '#1A2332', lineHeight: 1.55, wordBreak: 'break-word' }}>
                       {c.message.split('\n')[0]}
                     </Box>
                   </Box>
@@ -552,7 +573,7 @@
           const sorted = [...reposData].sort((a, b) => new Date(b.pushed_at) - new Date(a.pushed_at));
           setRepos(sorted);
 
-          const topRepos = sorted.slice(0, 8);
+          const topRepos = sorted.slice(0, 12);
           const results = await Promise.all(topRepos.map(r => fetchCommits(r.name, force)));
           const all = [];
           topRepos.forEach((r, i) => {
@@ -568,7 +589,7 @@
             });
           });
           all.sort((a, b) => new Date(b.date) - new Date(a.date));
-          setCommits(all.slice(0, 16));
+          setCommits(all.slice(0, 24));
         } catch (e) {
           setError(e.message || 'failed to load');
         } finally {
@@ -613,7 +634,7 @@
                     onClick={() => load(true)} disabled={loading} disableRipple
                     className="font-mono"
                     sx={{
-                      color: '#5B6B7F', fontSize: 11, fontWeight: 500, textTransform: 'none',
+                      color: '#5B6B7F', fontSize: 12, fontWeight: 500, textTransform: 'none',
                       border: '1px solid #E1E6EC', borderRadius: 1, px: 1.5, py: 0.5,
                       '&:hover': { bgcolor: '#EEF2F6', borderColor: '#C4CDD6', color: '#1A2332' }
                     }}
@@ -626,7 +647,7 @@
               {loading ? (
                 <Box sx={{ py: 8, textAlign: 'center' }}>
                   <CircularProgress size={22} sx={{ color: '#6B8E9F' }} />
-                  <Box className="font-mono" sx={{ mt: 2, fontSize: 12, color: '#8AA6B5' }}>
+                  <Box className="font-mono" sx={{ mt: 2, fontSize: 13, color: '#8AA6B5' }}>
                     fetching repos…
                   </Box>
                 </Box>
