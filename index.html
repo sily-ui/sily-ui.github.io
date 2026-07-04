@@ -264,7 +264,7 @@
                   <Box component="span" sx={{ color: '#6B8E9F' }}>with React.</Box>
                 </Typography>
 
-                <Box className="font-mono" sx={{ fontSize: 14, color: '#5B6B7F', mb: 5, maxWidth: 400, lineHeight: 1.7 }}>
+                <Box className="font-mono" sx={{ fontSize: 17, color: '#5B6B7F', mb: 5, maxWidth: 420, lineHeight: 1.7 }}>
                   {user?.bio || 'open-source work, synced from github. this page updates itself — no manual edits.'}
                 </Box>
 
@@ -301,7 +301,7 @@
                 </Box>
 
                 {user && (
-                  <Box className="font-mono" sx={{ mt: 5, display: 'flex', gap: 3, fontSize: 13, color: '#5B6B7F' }}>
+                  <Box className="font-mono" sx={{ mt: 5, display: 'flex', gap: 3, fontSize: 16, color: '#5B6B7F' }}>
                     <Box><Box component="span" sx={{ color: '#1A2332', fontWeight: 600 }}>{user.public_repos ?? 0}</Box> repos</Box>
                     <Box><Box component="span" sx={{ color: '#1A2332', fontWeight: 600 }}>{user.followers ?? 0}</Box> followers</Box>
                     <Box><Box component="span" sx={{ color: '#1A2332', fontWeight: 600 }}>{user.following ?? 0}</Box> following</Box>
@@ -321,23 +321,23 @@
               }}>
                 <Box sx={{ px: 2, py: 1.25, borderBottom: '1px solid #E1E6EC', display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#C4956C' }} />
-                  <Box className="font-mono" sx={{ fontSize: 12, color: '#5B6B7F' }}>
+                  <Box className="font-mono" sx={{ fontSize: 15, color: '#5B6B7F' }}>
                     {latestCommit ? formatRelative(latestCommit.date) : '—'} · main
                   </Box>
                 </Box>
                 <Box sx={{ p: 2.5 }}>
-                  <Box className="font-mono" sx={{ fontSize: 12, color: '#8AA6B5', mb: 1.5 }}>
+                  <Box className="font-mono" sx={{ fontSize: 15, color: '#8AA6B5', mb: 1.5 }}>
                     $ git log -1
                   </Box>
                   {latestCommit ? (
                     <>
-                      <Box className="font-mono" sx={{ fontSize: 13, color: '#6B8E9F', mb: 1 }}>
+                      <Box className="font-mono" sx={{ fontSize: 16, color: '#6B8E9F', mb: 1 }}>
                         commit <Box component="span" sx={{ color: '#1A2332' }}>{shortSha(latestCommit.sha)}</Box>
                       </Box>
-                      <Box className="font-mono" sx={{ fontSize: 13, color: '#1A2332', mb: 1.5, lineHeight: 1.6, wordBreak: 'break-word' }}>
+                      <Box className="font-mono" sx={{ fontSize: 16, color: '#1A2332', mb: 1.5, lineHeight: 1.65, wordBreak: 'break-word' }}>
                         {latestCommit.message.split('\n')[0]}
                       </Box>
-                      <Box className="font-mono" sx={{ fontSize: 12, color: '#5B6B7F', display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+                      <Box className="font-mono" sx={{ fontSize: 15, color: '#5B6B7F', display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
                         <Box component="a" href={latestCommit.url} target="_blank" rel="noopener noreferrer"
                           sx={{ color: '#6B8E9F', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
                           {latestCommit.repo}
@@ -347,7 +347,7 @@
                       </Box>
                     </>
                   ) : (
-                    <Box className="font-mono" sx={{ fontSize: 13, color: '#8AA6B5' }}>
+                    <Box className="font-mono" sx={{ fontSize: 16, color: '#8AA6B5' }}>
                       loading latest commit…
                     </Box>
                   )}
@@ -406,19 +406,19 @@
         >
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 0.5 }}>
-              <Box className="font-display repo-name" sx={{ fontSize: 17, fontWeight: 600, color: '#1A2332' }}>
+              <Box className="font-display repo-name" sx={{ fontSize: 20, fontWeight: 600, color: '#1A2332' }}>
                 {repo.name}
               </Box>
               {repo.language && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: langDot(repo.language) }} />
-                  <Box className="font-mono" sx={{ fontSize: 13, color: '#5B6B7F' }}>
+                  <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: langDot(repo.language) }} />
+                  <Box className="font-mono" sx={{ fontSize: 16, color: '#5B6B7F' }}>
                     {repo.language}
                   </Box>
                 </Box>
               )}
             </Box>
-            <Box sx={{ fontSize: 15, color: '#5B6B7F', lineHeight: 1.6, mb: 1.25 }}>
+            <Box sx={{ fontSize: 18, color: '#5B6B7F', lineHeight: 1.65, mb: 1.25 }}>
               {repo.description || 'no description'}
             </Box>
             {/* 细线进度 + 状态呼吸点 */}
@@ -437,7 +437,7 @@
                     }} />
                   )}
                 </Box>
-                <Box className="font-mono" sx={{ fontSize: 12.5, color: p.bar, fontWeight: 500 }}>
+                <Box className="font-mono" sx={{ fontSize: 15.5, color: p.bar, fontWeight: 500 }}>
                   {p.label}
                 </Box>
               </Box>
@@ -449,13 +449,13 @@
             display: 'flex', alignItems: 'center', gap: 2.5,
             justifyContent: { xs: 'flex-start', sm: 'flex-end' }
           }}>
-            <Box className="font-mono" sx={{ fontSize: 14, color: '#FBBF24', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Box className="font-mono" sx={{ fontSize: 17, color: '#FBBF24', display: 'flex', alignItems: 'center', gap: 0.5 }}>
               ★ {repo.stargazers_count}
             </Box>
-            <Box className="font-mono" sx={{ fontSize: 13, color: '#8AA6B5' }}>
+            <Box className="font-mono" sx={{ fontSize: 16, color: '#8AA6B5' }}>
               {formatRelative(repo.pushed_at)}
             </Box>
-            <Box className="font-mono repo-arrow" sx={{ fontSize: 15, color: '#5B6B7F' }}>→</Box>
+            <Box className="font-mono repo-arrow" sx={{ fontSize: 18, color: '#5B6B7F' }}>→</Box>
           </Box>
         </Box>
       );
@@ -532,18 +532,18 @@
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 0.5 }}>
-                      <Box className="font-mono" sx={{ fontSize: 13, color: '#6B8E9F', fontWeight: 500 }}>
+                      <Box className="font-mono" sx={{ fontSize: 16, color: '#6B8E9F', fontWeight: 500 }}>
                         {shortSha(c.sha)}
                       </Box>
                       <Box sx={{ width: 3, height: 3, borderRadius: '50%', bgcolor: '#C4CDD6' }} />
-                      <Box className="font-mono" sx={{ fontSize: 13, color: '#5B6B7F' }}>
+                      <Box className="font-mono" sx={{ fontSize: 16, color: '#5B6B7F' }}>
                         {c.repo}
                       </Box>
-                      <Box className="font-mono" sx={{ ml: 'auto', fontSize: 13, color: '#8AA6B5' }}>
+                      <Box className="font-mono" sx={{ ml: 'auto', fontSize: 16, color: '#8AA6B5' }}>
                         {formatRelative(c.date)}
                       </Box>
                     </Box>
-                    <Box sx={{ fontSize: 15, color: '#1A2332', lineHeight: 1.6, wordBreak: 'break-word' }}>
+                    <Box sx={{ fontSize: 18, color: '#1A2332', lineHeight: 1.65, wordBreak: 'break-word' }}>
                       {c.message.split('\n')[0]}
                     </Box>
                   </Box>
