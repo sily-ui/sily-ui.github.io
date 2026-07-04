@@ -35,9 +35,19 @@
     /* 细线分隔的行 hover */
     .repo-row { transition: background-color 0.15s ease; }
     .repo-row:hover { background-color: #EEF2F6; }
+    /* 行 hover 时标题与箭头染绿 */
+    .repo-name, .repo-arrow { transition: color 0.18s ease; }
+    .repo-row:hover .repo-name { color: #10B981; }
+    .repo-row:hover .repo-arrow { color: #10B981; }
+    /* active 状态呼吸点 */
+    @keyframes status-ping {
+      0%   { transform: scale(1);   opacity: 0.55; }
+      80%  { transform: scale(2.6); opacity: 0; }
+      100% { transform: scale(2.6); opacity: 0; }
+    }
     /* 焦点可见 */
     a:focus-visible, button:focus-visible {
-      outline: 2px solid #6B8E9F;
+      outline: 2px solid #10B981;
       outline-offset: 2px;
       border-radius: 4px;
     }
@@ -60,15 +70,15 @@
     const GITHUB_USER = 'sily-ui';
     const CACHE_TTL = 5 * 60 * 1000;
 
-    // 莫兰迪进度色（克制）
+    // 状态色：active 翠绿 / steady 科技蓝 / idle 克制灰
     function calcProgress(pushedAt) {
       const days = (Date.now() - new Date(pushedAt).getTime()) / 86400000;
-      if (days <= 7)   return { value: 92, bar: '#6B8E9F', label: 'active' };
-      if (days <= 30)  return { value: 76, bar: '#6B8E9F', label: 'active' };
-      if (days <= 90)  return { value: 58, bar: '#8AA6B5', label: 'steady' };
-      if (days <= 180) return { value: 38, bar: '#A8B8C4', label: 'steady' };
-      if (days <= 365) return { value: 22, bar: '#BFAEA0', label: 'idle' };
-      return { value: 10, bar: '#BFAEA0', label: 'idle' };
+      if (days <= 7)   return { value: 92, bar: '#10B981', label: 'active' };
+      if (days <= 30)  return { value: 76, bar: '#10B981', label: 'active' };
+      if (days <= 90)  return { value: 58, bar: '#3B82F6', label: 'steady' };
+      if (days <= 180) return { value: 38, bar: '#3B82F6', label: 'steady' };
+      if (days <= 365) return { value: 22, bar: '#94A3B8', label: 'idle' };
+      return { value: 10, bar: '#94A3B8', label: 'idle' };
     }
 
     function formatRelative(dateStr) {
@@ -168,6 +178,15 @@
                       fontSize: 12,
                       borderRadius: 1,
                       textTransform: 'none',
+                      position: 'relative',
+                      '&::after': active === m.target ? {
+                        content: '""',
+                        position: 'absolute',
+                        bottom: 2, left: '50%', transform: 'translateX(-50%)',
+                        width: 14, height: 2,
+                        bgcolor: '#10B981',
+                        borderRadius: 1
+                      } : {},
                       '&:hover': { bgcolor: '#EEF2F6', color: '#1A2332' }
                     }}
                   >
@@ -366,7 +385,7 @@
         >
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 0.5 }}>
-              <Box className="font-display" sx={{ fontSize: 15, fontWeight: 600, color: '#1A2332' }}>
+              <Box className="font-display repo-name" sx={{ fontSize: 15, fontWeight: 600, color: '#1A2332' }}>
                 {repo.name}
               </Box>
               {repo.language && (
@@ -381,13 +400,25 @@
             <Box sx={{ fontSize: 13, color: '#5B6B7F', lineHeight: 1.5, mb: 1.25 }}>
               {repo.description || 'no description'}
             </Box>
-            {/* 细线进度 */}
+            {/* 细线进度 + 状态呼吸点 */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
               <Box sx={{ flex: 1, maxWidth: 180, height: 2, bgcolor: '#E1E6EC', borderRadius: 1, overflow: 'hidden' }}>
-                <Box sx={{ width: `${p.value}%`, height: '100%', bgcolor: p.bar }} />
+                <Box sx={{ width: `${p.value}%`, height: '100%', bgcolor: p.bar, transition: 'width 0.4s ease' }} />
               </Box>
-              <Box className="font-mono" sx={{ fontSize: 10.5, color: '#8AA6B5' }}>
-                {p.label}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                {/* active 状态呼吸点 */}
+                <Box sx={{ position: 'relative', width: 6, height: 6 }}>
+                  <Box sx={{ position: 'absolute', inset: 0, borderRadius: '50%', bgcolor: p.bar }} />
+                  {p.label === 'active' && (
+                    <Box sx={{
+                      position: 'absolute', inset: 0, borderRadius: '50%', bgcolor: p.bar,
+                      animation: 'status-ping 1.8s ease-out infinite'
+                    }} />
+                  )}
+                </Box>
+                <Box className="font-mono" sx={{ fontSize: 10.5, color: p.bar, fontWeight: 500 }}>
+                  {p.label}
+                </Box>
               </Box>
             </Box>
           </Box>
@@ -397,13 +428,13 @@
             display: 'flex', alignItems: 'center', gap: 2.5,
             justifyContent: { xs: 'flex-start', sm: 'flex-end' }
           }}>
-            <Box className="font-mono" sx={{ fontSize: 12, color: '#C4956C', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Box className="font-mono" sx={{ fontSize: 12, color: '#FBBF24', display: 'flex', alignItems: 'center', gap: 0.5 }}>
               ★ {repo.stargazers_count}
             </Box>
             <Box className="font-mono" sx={{ fontSize: 11, color: '#8AA6B5' }}>
               {formatRelative(repo.pushed_at)}
             </Box>
-            <Box className="font-mono" sx={{ fontSize: 13, color: '#5B6B7F' }}>→</Box>
+            <Box className="font-mono repo-arrow" sx={{ fontSize: 13, color: '#5B6B7F' }}>→</Box>
           </Box>
         </Box>
       );
@@ -433,8 +464,13 @@
             bgcolor: active ? '#1A2332' : 'transparent',
             border: '1px solid',
             borderColor: active ? '#1A2332' : '#E1E6EC',
-            transition: 'all 0.15s ease',
-            '&:hover': { bgcolor: active ? '#2A3548' : '#EEF2F6' }
+            boxShadow: active ? '0 0 0 1px #10B981, 0 0 8px rgba(16,185,129,0.35)' : 'none',
+            transition: 'all 0.18s ease',
+            '&:hover': {
+              bgcolor: active ? '#2A3548' : 'transparent',
+              color: active ? '#F5F7FA' : '#10B981',
+              borderColor: '#10B981'
+            }
           }}
         >
           {label}
