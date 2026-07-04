@@ -99,6 +99,28 @@
       return (sha || '').slice(0, 7);
     }
 
+    // conventional commit 类型解析 → 颜色 + 标签
+    function commitType(message) {
+      const m = (message || '').toLowerCase();
+      const prefix = m.match(/^(feat|fix|docs|refactor|perf|test|chore|style|ci|build|revert)(\(.+\))?:/);
+      if (!prefix) return { type: 'other', color: '#94A3B8', label: '·' };
+      const t = prefix[1];
+      const map = {
+        feat:     { color: '#10B981', label: 'feat' },
+        fix:      { color: '#3B82F6', label: 'fix' },
+        docs:     { color: '#8B5CF6', label: 'docs' },
+        refactor: { color: '#F59E0B', label: 'refactor' },
+        perf:     { color: '#06B6D4', label: 'perf' },
+        test:     { color: '#94A3B8', label: 'test' },
+        chore:    { color: '#94A3B8', label: 'chore' },
+        style:    { color: '#94A3B8', label: 'style' },
+        ci:       { color: '#94A3B8', label: 'ci' },
+        build:    { color: '#94A3B8', label: 'build' },
+        revert:   { color: '#EF4444', label: 'revert' }
+      };
+      return map[t] || { type: 'other', color: '#94A3B8', label: '·' };
+    }
+
     async function fetchWithCache(key, url, force = false) {
       // force 刷新时优先返回旧缓存（避免限流期间丢失已有数据）
       const readCache = () => {
@@ -499,56 +521,110 @@
       );
     }
 
-    // ============ 更新动态：密集 changelog，SHA + 时间戳 ============
+    // ============ 更新动态：MUI Timeline 风格时间轴 ============
+    // 手写实现（@mui/lab 无 UMD bundle，避免白屏），视觉复刻 Timeline + outlined dot
+    function TimelineRow({ c, isLast }) {
+      const ct = commitType(c.message);
+      return (
+        <Box sx={{ display: 'flex', minHeight: 64 }}>
+          {/* Separator: dot + connector */}
+          <Box sx={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            width: 28, flexShrink: 0, pt: 1.5
+          }}>
+            {/* outlined dot — 类型色边框 */}
+            <Box sx={{
+              width: 12, height: 12, borderRadius: '50%',
+              bgcolor: '#FFFFFF',
+              border: `2px solid ${ct.color}`,
+              boxShadow: `0 0 0 2px ${ct.color}15`,
+              flexShrink: 0, zIndex: 1
+            }} />
+            {/* connector 垂直细线 */}
+            {!isLast && (
+              <Box sx={{
+                width: 2, flex: 1, mt: 0.5,
+                bgcolor: '#E1E6EC', minHeight: 28
+              }} />
+            )}
+          </Box>
+          {/* Content */}
+          <Box
+            component="a"
+            href={c.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            sx={{
+              textDecoration: 'none', color: 'inherit',
+              flex: 1, pl: 1.5, pr: 1, pb: isLast ? 1 : 2.5, pt: 0.5,
+              borderLeft: '1px solid transparent',
+              transition: 'border-color 0.18s ease, transform 0.18s ease',
+              '&:hover .tl-msg': { color: ct.color },
+              '&:hover .tl-arrow': { color: ct.color, transform: 'translateX(3px)' }
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
+              {/* 类型标签 */}
+              <Box className="font-mono" sx={{
+                fontSize: 11, fontWeight: 600,
+                color: ct.color,
+                px: 0.75, py: 0.25,
+                borderRadius: 0.5,
+                border: `1px solid ${ct.color}40`,
+                bgcolor: `${ct.color}0D`,
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em'
+              }}>
+                {ct.label}
+              </Box>
+              <Box className="font-mono" sx={{ fontSize: 13, color: '#6B8E9F', fontWeight: 500 }}>
+                {shortSha(c.sha)}
+              </Box>
+              <Box className="font-mono" sx={{ fontSize: 13, color: '#5B6B7F' }}>
+                {c.repo}
+              </Box>
+              <Box className="font-mono" sx={{ ml: 'auto', fontSize: 13, color: '#8AA6B5' }}>
+                {formatRelative(c.date)}
+              </Box>
+            </Box>
+            <Box className="tl-msg" sx={{
+              fontSize: 16, color: '#1A2332', lineHeight: 1.6, wordBreak: 'break-word',
+              transition: 'color 0.18s ease',
+              display: 'inline-flex', alignItems: 'baseline', gap: 0.5
+            }}>
+              {c.message.split('\n')[0]}
+              <Box className="tl-arrow" component="span" sx={{
+                fontSize: 14, color: '#C4CDD6', ml: 0.5,
+                transition: 'color 0.18s ease, transform 0.18s ease'
+              }}>→</Box>
+            </Box>
+          </Box>
+        </Box>
+      );
+    }
+
     function UpdatesList({ commits }) {
       if (commits.length === 0) {
         return (
           <Box sx={{ py: 4, textAlign: 'center' }}>
-            <Box className="font-mono" sx={{ fontSize: 12, color: '#8AA6B5' }}>no recent commits</Box>
+            <Box className="font-mono" sx={{ fontSize: 14, color: '#8AA6B5' }}>no recent commits</Box>
           </Box>
         );
       }
       const half = Math.ceil(commits.length / 2);
       const cols = [commits.slice(0, half), commits.slice(half)];
       return (
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4 }}>
           {cols.map((col, ci) => (
-            <Box key={ci} sx={{ bgcolor: '#FFFFFF', border: '1px solid #E1E6EC', borderRadius: 1.5, overflow: 'hidden' }}>
-              {col.map((c, i) => {
-                const isLast = i === col.length - 1;
-                return (
-                  <Box
-                    component="a"
-                    key={c.sha + i}
-                    href={c.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    sx={{
-                      display: 'block', textDecoration: 'none', color: 'inherit',
-                      px: 2, py: 1.75,
-                      borderBottom: isLast ? 'none' : '1px solid #E1E6EC',
-                      transition: 'background-color 0.15s ease',
-                      '&:hover': { bgcolor: '#EEF2F6' }
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 0.5 }}>
-                      <Box className="font-mono" sx={{ fontSize: 16, color: '#6B8E9F', fontWeight: 500 }}>
-                        {shortSha(c.sha)}
-                      </Box>
-                      <Box sx={{ width: 3, height: 3, borderRadius: '50%', bgcolor: '#C4CDD6' }} />
-                      <Box className="font-mono" sx={{ fontSize: 16, color: '#5B6B7F' }}>
-                        {c.repo}
-                      </Box>
-                      <Box className="font-mono" sx={{ ml: 'auto', fontSize: 16, color: '#8AA6B5' }}>
-                        {formatRelative(c.date)}
-                      </Box>
-                    </Box>
-                    <Box sx={{ fontSize: 18, color: '#1A2332', lineHeight: 1.65, wordBreak: 'break-word' }}>
-                      {c.message.split('\n')[0]}
-                    </Box>
-                  </Box>
-                );
-              })}
+            <Box key={ci} sx={{
+              bgcolor: '#FFFFFF',
+              border: '1px solid #E1E6EC',
+              borderRadius: 1.5,
+              p: 2.5
+            }}>
+              {col.map((c, i) => (
+                <TimelineRow key={c.sha + i} c={c} isLast={i === col.length - 1} />
+              ))}
             </Box>
           ))}
         </Box>
