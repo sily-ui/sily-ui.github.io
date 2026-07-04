@@ -9,10 +9,9 @@
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 
-  <!-- MUI v5 + Lab (Timeline) -->
+  <!-- MUI v5 -->
   <link rel="stylesheet" href="https://unpkg.com/@mui/material@5/umd/material-ui.production.min.css" />
   <script src="https://unpkg.com/@mui/material@5/umd/material-ui.production.min.js"></script>
-  <script src="https://unpkg.com/@mui/lab@5/umd/material-ui-lab.production.min.js"></script>
   <script src="https://unpkg.com/@emotion/react@11/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/@emotion/styled@11/umd/styled.production.min.js"></script>
 
@@ -31,11 +30,6 @@
       LinearProgress, Paper, Divider, CircularProgress,
       Alert, AlertTitle, Stack
     } = MaterialUI;
-
-    const {
-      Timeline, TimelineItem, TimelineSeparator, TimelineConnector,
-      TimelineContent, TimelineDot, TimelineOppositeContent
-    } = MaterialUILab;
 
     // ============ 配置 ============
     const GITHUB_USER = 'sily-ui';
@@ -296,7 +290,7 @@
       );
     }
 
-    // ============ 更新动态时间线 ============
+    // ============ 更新动态时间线（自实现，无需 MUI Lab） ============
     function UpdatesTimeline({ commits }) {
       if (commits.length === 0) {
         return (
@@ -306,41 +300,55 @@
         );
       }
       return (
-        <Timeline>
-          {commits.map((c, i) => (
-            <TimelineItem key={c.sha + i}>
-              <TimelineOppositeContent sx={{ flex: 0.25, display: { xs: 'none', sm: 'block' }, pt: 0.5 }}>
-                <Typography variant="caption" color="text.secondary">
-                  {formatRelative(c.date)}
-                </Typography>
-              </TimelineOppositeContent>
-              <TimelineSeparator>
-                <TimelineDot color="primary" sx={{ boxShadow: '0 0 0 4px rgba(105,177,255,0.15)' }} />
-                {i < commits.length - 1 && <TimelineConnector sx={{ bgcolor: 'rgba(105,177,255,0.3)' }} />}
-              </TimelineSeparator>
-              <TimelineContent sx={{ pb: 3 }}>
-                <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: 'text.primary', wordBreak: 'break-word' }}>
-                  {c.message.split('\n')[0]}
-                </Typography>
-                <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-                  <Chip
-                    label={c.repo}
-                    size="small"
-                    component="a"
-                    clickable
-                    href={c.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    sx={{ bgcolor: 'rgba(105,177,255,0.14)', color: 'primary.dark', fontWeight: 500 }}
-                  />
-                  <Typography variant="caption" color="text.secondary">
-                    {c.author} · {formatRelative(c.date)}
+        <Box sx={{ pl: { xs: 1, sm: 2 } }}>
+          {commits.map((c, i) => {
+            const isLast = i === commits.length - 1;
+            return (
+              <Box key={c.sha + i} sx={{ display: 'flex', position: 'relative', pb: isLast ? 0 : 3 }}>
+                {/* 左侧时间线轴：圆点 + 连接线 */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mr: 2 }}>
+                  <Box sx={{
+                    width: 12, height: 12, borderRadius: '50%',
+                    bgcolor: 'primary.main', flexShrink: 0, mt: '6px',
+                    boxShadow: '0 0 0 4px rgba(105,177,255,0.15)'
+                  }} />
+                  {!isLast && (
+                    <Box sx={{
+                      width: 2, flex: 1, bgcolor: 'rgba(105,177,255,0.3)', mt: '4px'
+                    }} />
+                  )}
+                </Box>
+
+                {/* 右侧内容 */}
+                <Paper elevation={0} sx={{
+                  flex: 1, p: 2, mb: isLast ? 0 : 1,
+                  border: '1px solid', borderColor: 'divider', borderRadius: 2,
+                  transition: 'all 0.2s',
+                  '&:hover': { borderColor: 'primary.light', boxShadow: '0 2px 12px rgba(105,177,255,0.12)' }
+                }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: 'text.primary', wordBreak: 'break-word', lineHeight: 1.5 }}>
+                    {c.message.split('\n')[0]}
                   </Typography>
-                </Stack>
-              </TimelineContent>
-            </TimelineItem>
-          ))}
-        </Timeline>
+                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                    <Chip
+                      label={c.repo}
+                      size="small"
+                      component="a"
+                      clickable
+                      href={c.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{ bgcolor: 'rgba(105,177,255,0.14)', color: 'primary.dark', fontWeight: 500 }}
+                    />
+                    <Typography variant="caption" color="text.secondary">
+                      {c.author} · {formatRelative(c.date)}
+                    </Typography>
+                  </Stack>
+                </Paper>
+              </Box>
+            );
+          })}
+        </Box>
       );
     }
 
