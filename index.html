@@ -101,23 +101,38 @@
     }
 
     // conventional commit 类型解析 → 颜色 + 标签
+    // 颜色语义：feat 翠绿(新增) · fix 科技蓝(修复) · revert 红(回滚) · release 暖金(发布)
     function commitType(message) {
       const m = (message || '').toLowerCase();
-      const prefix = m.match(/^(feat|fix|docs|refactor|perf|test|chore|style|ci|build|revert)(\(.+\))?:/);
+      // Conventional Commits 标准 11 种 + 实际项目常见扩展类型
+      const prefix = m.match(
+        /^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert|improve|security|hotfix|deps|release|merge|i18n|config|wip)(\(.+\))?:/
+      );
       if (!prefix) return { type: 'other', color: '#94A3B8', label: '·' };
       const t = prefix[1];
       const map = {
-        feat:     { color: '#10B981', label: 'feat' },
-        fix:      { color: '#3B82F6', label: 'fix' },
-        docs:     { color: '#8B5CF6', label: 'docs' },
-        refactor: { color: '#F59E0B', label: 'refactor' },
-        perf:     { color: '#06B6D4', label: 'perf' },
-        test:     { color: '#94A3B8', label: 'test' },
-        chore:    { color: '#94A3B8', label: 'chore' },
-        style:    { color: '#94A3B8', label: 'style' },
-        ci:       { color: '#94A3B8', label: 'ci' },
-        build:    { color: '#94A3B8', label: 'build' },
-        revert:   { color: '#EF4444', label: 'revert' }
+        // —— Conventional Commits 标准类型（每种独立可辨）——
+        feat:     { color: '#10B981', label: 'feat' },      // 新功能 · 翠绿
+        fix:      { color: '#3B82F6', label: 'fix' },        // bug 修复 · 科技蓝
+        docs:     { color: '#8B5CF6', label: 'docs' },      // 文档 · 紫
+        style:    { color: '#06B6D4', label: 'style' },     // 代码风格 · 青
+        refactor: { color: '#F59E0B', label: 'refactor' },  // 重构 · 琥珀
+        perf:     { color: '#EC4899', label: 'perf' },       // 性能 · 粉
+        test:     { color: '#14B8A6', label: 'test' },       // 测试 · 蓝绿
+        build:    { color: '#A855F7', label: 'build' },      // 构建 · 浅紫
+        ci:       { color: '#6366F1', label: 'ci' },         // CI · 靛蓝
+        chore:    { color: '#64748B', label: 'chore' },     // 杂务 · 石板灰
+        revert:   { color: '#EF4444', label: 'revert' },    // 回滚 · 红
+        // —— 常见扩展类型（避免落到 other ·，提升可辨识度）——
+        improve:  { color: '#22C55E', label: 'improve' },   // 改进 · 亮绿
+        security: { color: '#DC2626', label: 'security' },  // 安全 · 深红
+        hotfix:   { color: '#F97316', label: 'hotfix' },    // 热修复 · 橙
+        deps:     { color: '#84CC16', label: 'deps' },       // 依赖 · 青柠
+        release:  { color: '#FBBF24', label: 'release' },   // 发布 · 暖金
+        merge:    { color: '#7C3AED', label: 'merge' },      // 合并 · 深紫
+        i18n:     { color: '#D946EF', label: 'i18n' },       // 国际化 · 洋红
+        config:   { color: '#0EA5E9', label: 'config' },     // 配置 · 天蓝
+        wip:      { color: '#94A3B8', label: 'wip' }         // 进行中 · 灰
       };
       return map[t] || { type: 'other', color: '#94A3B8', label: '·' };
     }
