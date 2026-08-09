@@ -9,7 +9,7 @@
 
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%231A2332'%3E%3Cpath d='M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z'/%3E%3C/svg%3E" />
 
-  <title>sily-ui — changelog</title>
+  <title>sily-ui — personal homepage</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -39,12 +39,20 @@
     /* 行 hover 时标题与箭头染绿 */
     .repo-name, .repo-arrow { transition: color 0.18s ease; }
     .repo-row:hover .repo-name { color: #10B981; }
-    .repo-row:hover .repo-arrow { color: #10B981; }
+    .repo-row:hover .repo-arrow { color: '#10B981'; }
     /* active 状态呼吸点 */
     @keyframes status-ping {
       0%   { transform: scale(1);   opacity: 0.55; }
       80%  { transform: scale(2.6); opacity: 0; }
       100% { transform: scale(2.6); opacity: 0; }
+    }
+    /* 加载渐显 */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in-up {
+      animation: fadeInUp 0.55s ease both;
     }
     /* 焦点可见 */
     a:focus-visible, button:focus-visible {
@@ -199,7 +207,9 @@
     function NavBar({ active, setActive }) {
       const menus = [
         { label: 'home', target: 'home' },
+        { label: 'skills', target: 'skills' },
         { label: 'work', target: 'projects' },
+        { label: 'stats', target: 'stats' },
         { label: 'log', target: 'updates' }
       ];
       const scrollTo = (t) => {
@@ -260,7 +270,7 @@
     }
 
     // ============ Hero：不对称两栏，签名是右侧 live commit ============
-    function Hero({ user, latestCommit }) {
+    function Hero({ user, latestCommit, languages }) {
       const handle = user?.login || GITHUB_USER;
       return (
         <Box id="home" sx={{ borderBottom: '1px solid #E1E6EC' }}>
@@ -347,48 +357,93 @@
                 )}
               </Box>
 
-              {/* 右：live commit 终端片段 — 签名元素 */}
+              {/* 右：身份状态卡 — 终端之上叠加状态/链接/栈 */}
               <Box sx={{
-                bgcolor: '#FFFFFF',
-                border: '1px solid #E1E6EC',
-                borderRadius: 1.5,
-                overflow: 'hidden',
-                maxWidth: 420,
-                justifySelf: { md: 'end' },
-                width: '100%'
+                display: 'flex', flexDirection: 'column', gap: 2.5,
+                maxWidth: 420, width: '100%',
+                justifySelf: { md: 'end' }
               }}>
-                <Box sx={{ px: 2, py: 1.25, borderBottom: '1px solid #E1E6EC', display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#C4956C' }} />
-                  <Box className="font-mono" sx={{ fontSize: 15, color: '#5B6B7F' }}>
-                    {latestCommit ? formatRelative(latestCommit.date) : '—'} · main
+                <Box sx={{
+                  bgcolor: '#FFFFFF',
+                  border: '1px solid #E1E6EC',
+                  borderRadius: 1.5,
+                  overflow: 'hidden'
+                }}>
+                  <Box sx={{ px: 2, py: 1.25, borderBottom: '1px solid #E1E6EC', display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#C4956C' }} />
+                    <Box className="font-mono" sx={{ fontSize: 15, color: '#5B6B7F' }}>
+                      {latestCommit ? formatRelative(latestCommit.date) : '—'} · main
+                    </Box>
+                  </Box>
+                  <Box sx={{ p: 2.5 }}>
+                    <Box className="font-mono" sx={{ fontSize: 15, color: '#8AA6B5', mb: 1.5 }}>
+                      $ git log -1
+                    </Box>
+                    {latestCommit ? (
+                      <>
+                        <Box className="font-mono" sx={{ fontSize: 16, color: '#6B8E9F', mb: 1 }}>
+                          commit <Box component="span" sx={{ color: '#1A2332' }}>{shortSha(latestCommit.sha)}</Box>
+                        </Box>
+                        <Box className="font-mono" sx={{ fontSize: 16, color: '#1A2332', mb: 1.5, lineHeight: 1.65, wordBreak: 'break-word' }}>
+                          {latestCommit.message.split('\n')[0]}
+                        </Box>
+                        <Box className="font-mono" sx={{ fontSize: 15, color: '#5B6B7F', display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+                          <Box component="a" href={latestCommit.url} target="_blank" rel="noopener noreferrer"
+                            sx={{ color: '#6B8E9F', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
+                            {latestCommit.repo}
+                          </Box>
+                          <Box>·</Box>
+                          <Box>{latestCommit.author}</Box>
+                        </Box>
+                      </>
+                    ) : (
+                      <Box className="font-mono" sx={{ fontSize: 16, color: '#8AA6B5' }}>
+                        loading latest commit…
+                      </Box>
+                    )}
                   </Box>
                 </Box>
-                <Box sx={{ p: 2.5 }}>
-                  <Box className="font-mono" sx={{ fontSize: 15, color: '#8AA6B5', mb: 1.5 }}>
-                    $ git log -1
-                  </Box>
-                  {latestCommit ? (
-                    <>
-                      <Box className="font-mono" sx={{ fontSize: 16, color: '#6B8E9F', mb: 1 }}>
-                        commit <Box component="span" sx={{ color: '#1A2332' }}>{shortSha(latestCommit.sha)}</Box>
-                      </Box>
-                      <Box className="font-mono" sx={{ fontSize: 16, color: '#1A2332', mb: 1.5, lineHeight: 1.65, wordBreak: 'break-word' }}>
-                        {latestCommit.message.split('\n')[0]}
-                      </Box>
-                      <Box className="font-mono" sx={{ fontSize: 15, color: '#5B6B7F', display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
-                        <Box component="a" href={latestCommit.url} target="_blank" rel="noopener noreferrer"
-                          sx={{ color: '#6B8E9F', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
-                          {latestCommit.repo}
-                        </Box>
-                        <Box>·</Box>
-                        <Box>{latestCommit.author}</Box>
-                      </Box>
-                    </>
-                  ) : (
-                    <Box className="font-mono" sx={{ fontSize: 16, color: '#8AA6B5' }}>
-                      loading latest commit…
+
+                <Box sx={{ bgcolor: '#FFFFFF', border: '1px solid #E1E6EC', borderRadius: 1.5, p: 2.5, display: 'flex', flexDirection: 'column', gap: 2.25 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.25, flexWrap: 'wrap' }}>
+                    <Box className="font-mono" sx={{ fontSize: 13, color: '#5B6B7F' }}>
+                      <Box component="span" sx={{ color: '#10B981', fontWeight: 600 }}>●</Box> open to work
                     </Box>
-                  )}
+                    <Box className="font-mono" sx={{ fontSize: 13, color: '#5B6B7F' }}>
+                      <Box component="span" sx={{ color: '#6B8E9F' }}>◉</Box> based in <Box component="span" sx={{ color: '#1A2332', fontWeight: 500 }}>{user?.location || 'Asia/Shanghai'}</Box>
+                    </Box>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', gap: 1.25, flexWrap: 'wrap' }}>
+                    {(user?.blog || `https://github.com/${GITHUB_USER}`) && (
+                      <Box component="a" href={user?.blog || `https://github.com/${GITHUB_USER}`} target="_blank" rel="noopener noreferrer"
+                        className="font-mono" sx={{ fontSize: 12, color: '#5B6B7F', textDecoration: 'none', border: '1px solid #E1E6EC', borderRadius: 1, px: 1.25, py: 0.5, transition: 'all 0.18s ease', '&:hover': { borderColor: '#10B981', color: '#10B981' } }}>
+                        site
+                      </Box>
+                    )}
+                    {(user?.twitter_username || user?.email) && (
+                      <Box className="font-mono" sx={{ fontSize: 12, color: '#5B6B7F', border: '1px solid #E1E6EC', borderRadius: 1, px: 1.25, py: 0.5, transition: 'all 0.18s ease', '&:hover': { borderColor: '#10B981', color: '#10B981' }, cursor: 'pointer' }}>
+                        {user?.twitter_username ? '@' + user.twitter_username : user?.email}
+                      </Box>
+                    )}
+                    <Box className="font-mono" sx={{ fontSize: 12, color: '#5B6B7F', border: '1px solid #E1E6EC', borderRadius: 1, px: 1.25, py: 0.5, transition: 'all 0.18s ease', '&:hover': { borderColor: '#10B981', color: '#10B981' }, cursor: 'pointer' }}>
+                      {user?.company || GITHUB_USER}
+                    </Box>
+                  </Box>
+                </Box>
+
+                <Box sx={{ bgcolor: '#FFFFFF', border: '1px solid #E1E6EC', borderRadius: 1.5, p: 2.5 }}>
+                  <Box className="font-mono" sx={{ fontSize: 13, color: '#6B8E9F', fontWeight: 600, mb: 1.5, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    stack summary
+                  </Box>
+                  <Box sx={{ display: 'flex', gap: 1.25, flexWrap: 'wrap' }}>
+                    {languages.slice(0, 6).map(lang => (
+                      <Box key={lang} className="font-mono" sx={{ fontSize: 12, color: '#5B6B7F', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: langDot(lang) }} />
+                        {lang}
+                      </Box>
+                    ))}
+                  </Box>
                 </Box>
               </Box>
             </Box>
@@ -494,6 +549,120 @@
               {formatRelative(repo.pushed_at)}
             </Box>
             <Box className="font-mono repo-arrow" sx={{ fontSize: 18, color: '#5B6B7F' }}>→</Box>
+          </Box>
+        </Box>
+      );
+    }
+
+    // ============ 精选项目 bento 卡片：图卡 + 强化描述 ============
+    function FeaturedCard({ repo, index = 0 }) {
+      const p = calcProgress(repo.pushed_at);
+      return (
+        <Box
+          component="a"
+          href={repo.html_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fade-in-up"
+          sx={{
+            textDecoration: 'none', color: 'inherit',
+            bgcolor: '#FFFFFF',
+            border: '1px solid #E1E6EC',
+            borderRadius: 2,
+            p: 3,
+            display: 'flex', flexDirection: 'column',
+            gap: 2,
+            minHeight: 200,
+            position: 'relative',
+            overflow: 'hidden',
+            transition: 'border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease',
+            animationDelay: `${index * 0.1}s`,
+            '&:hover': {
+              borderColor: '#10B981',
+              transform: 'translateY(-2px)',
+              boxShadow: '0 8px 24px rgba(16,185,129,0.08)'
+            },
+            '&:hover .fc-name': { color: '#10B981' },
+            '&:hover .fc-arrow': { color: '#10B981', transform: 'translate(2px,-2px)' }
+          }}
+        >
+          {/* 顶部：状态徽标 + 语言点 */}
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+              <Box sx={{ position: 'relative', width: 6, height: 6 }}>
+                <Box sx={{ position: 'absolute', inset: 0, borderRadius: '50%', bgcolor: p.bar }} />
+                {p.label === 'active' && (
+                  <Box sx={{ position: 'absolute', inset: 0, borderRadius: '50%', bgcolor: p.bar, animation: 'status-ping 1.8s ease-out infinite' }} />
+                )}
+              </Box>
+              <Box className="font-mono" sx={{ fontSize: 11, color: p.bar, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                {p.label}
+              </Box>
+            </Box>
+            {repo.language && (
+              <Box className="font-mono" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: 12, color: '#5B6B7F' }}>
+                <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: langDot(repo.language) }} />
+                {repo.language}
+              </Box>
+            )}
+          </Box>
+
+          {/* 标题 + 跳转箭头 */}
+          <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1 }}>
+            <Box className="font-display fc-name" sx={{ fontSize: 24, fontWeight: 600, color: '#1A2332', transition: 'color 0.18s ease', wordBreak: 'break-word' }}>
+              {repo.name}
+            </Box>
+            <Box className="fc-arrow font-mono" sx={{ fontSize: 18, color: '#C4CDD6', transition: 'color 0.18s ease, transform 0.18s ease' }}>↗</Box>
+          </Box>
+
+          {/* 描述 */}
+          <Box sx={{ fontSize: 15, color: '#5B6B7F', lineHeight: 1.65, flex: 1 }}>
+            {repo.description || 'no description provided.'}
+          </Box>
+
+          {/* 细线进度 */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+            <Box sx={{ flex: 1, height: 2, bgcolor: '#E1E6EC', borderRadius: 1, overflow: 'hidden' }}>
+              <Box sx={{ width: `${p.value}%`, height: '100%', bgcolor: p.bar, transition: 'width 0.4s ease' }} />
+            </Box>
+            <Box className="font-mono" sx={{ fontSize: 11, color: '#8AA6B5', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              {formatRelative(repo.pushed_at)}
+            </Box>
+          </Box>
+
+          {/* 底部 meta：stars + forks + topics */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', pt: 1.5, borderTop: '1px solid #EEF2F6' }}>
+            <Box className="font-mono" sx={{ fontSize: 13, color: '#FBBF24', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              ★ {repo.stargazers_count ?? 0}
+            </Box>
+            <Box className="font-mono" sx={{ fontSize: 13, color: '#8AA6B5', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              ⑂ {repo.forks_count ?? 0}
+            </Box>
+            {(repo.topics || []).slice(0, 2).map(t => (
+              <Box key={t} className="font-mono" sx={{ fontSize: 11, color: '#6B8E9F', px: 0.75, py: 0.25, borderRadius: 0.5, bgcolor: '#F5F7FA', border: '1px solid #EEF2F6' }}>
+                {t}
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      );
+    }
+
+    function FeaturedBento({ repos }) {
+      // 优先选 stars ≥ 1 的，其次按更新时间，取前 2 个
+      const featured = [...repos]
+        .sort((a, b) => (b.stargazers_count || 0) - (a.stargazers_count || 0) || new Date(b.pushed_at) - new Date(a.pushed_at))
+        .slice(0, 2);
+      if (featured.length === 0) return null;
+      return (
+        <Box sx={{ mb: 5 }}>
+          <Box className="font-mono" sx={{ fontSize: 12, color: '#6B8E9F', fontWeight: 600, mb: 2, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            featured
+          </Box>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 3 }}>
+            {featured.map((r, i) => (
+              <FeaturedCard key={r.id} repo={r} index={i} />
+            ))}
           </Box>
         </Box>
       );
@@ -648,6 +817,42 @@
     }
 
     // ============ 主应用 ============
+    function useCountUp(target, duration = 1200) {
+      const [current, setCurrent] = useState(0);
+      const [started, setStarted] = useState(false);
+      useEffect(() => {
+        if (started) return;
+        const el = document.getElementById('stats');
+        if (!el) return;
+        const onEnter = () => {
+          setStarted(true);
+          const start = performance.now();
+          const tick = (now) => {
+            const progress = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setCurrent(Math.round(target * eased));
+            if (progress < 1) requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        };
+        const observer = new IntersectionObserver(entries => {
+          if (entries[0].isIntersecting) onEnter();
+        }, { threshold: 0.35 });
+        observer.observe(el);
+        return () => observer.disconnect();
+      }, [target, duration, started]);
+      return current;
+    }
+
+    function CountUpStat({ value, color, suffix = '' }) {
+      const display = useCountUp(value);
+      return (
+        <Box className="font-mono" sx={{ fontSize: 28, color, fontWeight: 600 }}>
+          {display.toLocaleString()}{suffix}
+        </Box>
+      );
+    }
+
     function App() {
       const [active, setActive] = useState('home');
       const [user, setUser] = useState(null);
@@ -693,7 +898,7 @@
 
       useEffect(() => {
         const handler = () => {
-          const sections = ['home', 'projects', 'updates'];
+          const sections = ['home', 'skills', 'projects', 'stats', 'updates'];
           let cur = 'home';
           for (const s of sections) {
             const el = document.getElementById(s);
@@ -712,7 +917,36 @@
       return (
         <Box>
           <NavBar active={active} setActive={setActive} />
-          <Hero user={user} latestCommit={latestCommit} />
+          <Hero user={user} latestCommit={latestCommit} languages={languages} />
+
+          <Box id="skills" sx={{ borderBottom: '1px solid #E1E6EC' }}>
+            <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 }, py: { xs: 6, md: 8 } }}>
+              <SectionHead label="skills" />
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 4 }}>
+                {[
+                  { title: 'frontend', dot: '#10B981', items: ['React', 'TypeScript', 'Next.js', 'Tailwind CSS', 'MUI'] },
+                  { title: 'tooling',  dot: '#3B82F6', items: ['Git', 'GitHub Actions', 'Vite', 'Webpack', 'Docker'] },
+                  { title: 'interests', dot: '#FBBF24', items: ['Open Source', 'Design Systems', 'DX', 'Automation', 'Creative Coding'] }
+                ].map((card, i) => (
+                  <Box key={card.title} className="fade-in-up" sx={{
+                    bgcolor: '#FFFFFF', border: '1px solid #E1E6EC', borderRadius: 1.5, p: 3,
+                    animationDelay: `${i * 0.08}s`
+                  }}>
+                    <Box className="font-mono" sx={{ fontSize: 13, color: '#6B8E9F', fontWeight: 600, mb: 1.75, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                      {card.title}
+                    </Box>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.85 }}>
+                      {card.items.map(item => (
+                        <Box key={item} className="font-mono" sx={{ fontSize: 15, color: '#5B6B7F', display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: card.dot }} /> {item}
+                        </Box>
+                      ))}
+                    </Box>
+                  </Box>
+                ))}
+              </Box>
+            </Container>
+          </Box>
 
           {/* work */}
           <Box id="projects" sx={{ borderBottom: '1px solid #E1E6EC' }}>
@@ -755,6 +989,7 @@
                 </Alert>
               ) : (
                 <>
+                  <FeaturedBento repos={repos} />
                   <LanguageFilter languages={languages} current={filter} onChange={setFilter} />
                   <Box sx={{ borderTop: '1px solid #E1E6EC' }}>
                     {filtered.map(repo => (
@@ -768,6 +1003,29 @@
                   )}
                 </>
               )}
+            </Container>
+          </Box>
+
+          <Box id="stats" sx={{ borderBottom: '1px solid #E1E6EC' }}>
+            <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 }, py: { xs: 6, md: 8 } }}>
+              <SectionHead label="stats" hint="derived from public repos" />
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(4, 1fr)' }, gap: 4 }}>
+                {[
+                  { label: 'total stars',       value: repos.reduce((s, r) => s + (r.stargazers_count || 0), 0), color: '#FBBF24' },
+                  { label: 'total forks',        value: repos.reduce((s, r) => s + (r.forks_count || 0), 0),    color: '#6B8E9F' },
+                  { label: 'commits synced',     value: commits.length,                                              color: '#10B981' },
+                  { label: 'languages tracked', value: languages.length,                                            color: '#1A2332' }
+                ].map((s, i) => (
+                  <Box key={s.label} className="fade-in-up" sx={{
+                    bgcolor: '#FFFFFF', border: '1px solid #E1E6EC', borderRadius: 1.5, p: 3,
+                    display: 'flex', flexDirection: 'column', gap: 0.75,
+                    animationDelay: `${i * 0.08}s`
+                  }}>
+                    <Box className="font-mono" sx={{ fontSize: 12, color: '#8AA6B5', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{s.label}</Box>
+                    <CountUpStat value={s.value} color={s.color} />
+                  </Box>
+                ))}
+              </Box>
             </Container>
           </Box>
 
