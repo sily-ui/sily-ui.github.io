@@ -927,10 +927,9 @@
                   { title: 'frontend', dot: '#10B981', items: ['React', 'TypeScript', 'Next.js', 'Tailwind CSS', 'MUI'] },
                   { title: 'tooling',  dot: '#3B82F6', items: ['Git', 'GitHub Actions', 'Vite', 'Webpack', 'Docker'] },
                   { title: 'interests', dot: '#FBBF24', items: ['Open Source', 'Design Systems', 'DX', 'Automation', 'Creative Coding'] }
-                ].map((card, i) => (
-                  <Box key={card.title} className="fade-in-up" sx={{
-                    bgcolor: '#FFFFFF', border: '1px solid #E1E6EC', borderRadius: 1.5, p: 3,
-                    animationDelay: `${i * 0.08}s`
+                ].map((card) => (
+                  <Box key={card.title} sx={{
+                    bgcolor: '#FFFFFF', border: '1px solid #E1E6EC', borderRadius: 1.5, p: 3
                   }}>
                     <Box className="font-mono" sx={{ fontSize: 13, color: '#6B8E9F', fontWeight: 600, mb: 1.75, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                       {card.title}
@@ -1015,12 +1014,11 @@
                   { label: 'total forks',        value: repos.reduce((s, r) => s + (r.forks_count || 0), 0),    color: '#6B8E9F' },
                   { label: 'commits synced',     value: commits.length,                                              color: '#10B981' },
                   { label: 'languages tracked', value: languages.length,                                            color: '#1A2332' }
-                ].map((s, i) => (
-                  <Box key={s.label} className="fade-in-up" sx={{
+                ].map((s) => (
+                  <Box key={s.label} sx={{
                     bgcolor: '#FFFFFF', border: '1px solid #E1E6EC', borderRadius: 1.5, p: 3,
                     display: 'flex', flexDirection: 'column', gap: 0.75,
-                    animationDelay: `${i * 0.08}s`
-                  }}>
+                    }}>
                     <Box className="font-mono" sx={{ fontSize: 12, color: '#8AA6B5', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{s.label}</Box>
                     <CountUpStat value={s.value} color={s.color} />
                   </Box>
