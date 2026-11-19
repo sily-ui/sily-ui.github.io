@@ -70,14 +70,13 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useCallback, useRef } = React;
+    const { useState, useEffect, useCallback } = React;
     const {
       Container, Box, Typography, Button, Chip, Stack,
       CircularProgress, Alert, AlertTitle
     } = MaterialUI;
 
     const GITHUB_USER = 'sily-ui';
-    const CACHE_TTL = 5 * 60 * 1000;
 
     // 状态色：active 翠绿 / steady 科技蓝 / idle 克制灰
     function calcProgress(pushedAt) {
@@ -145,73 +144,34 @@
       return map[t] || { type: 'other', color: '#94A3B8', label: '·' };
     }
 
-    // 数据新鲜度追踪：用于在界面上提示「当前展示的是缓存数据」
+    // 数据新鲜度追踪：用于在界面上提示同步时间
     const fetchMeta = { reposTs: null, stale: false, rateLimited: false, resetAt: null };
 
-    // 限流提示：带上额度恢复时间（x-ratelimit-reset 对浏览器 JS 可见）
-    function rateLimitMsg(resetAt) {
-      if (!resetAt || resetAt <= Date.now()) return 'GitHub rate-limited, try again in a few minutes';
-      const mins = Math.max(1, Math.round((resetAt - Date.now()) / 60000));
-      const t = new Date(resetAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-      return `GitHub 匿名额度已用完，${t} 自动恢复（约 ${mins} 分钟后）`;
-    }
+    // 数据来源：仓库根目录的 data.json（由 GitHub Actions 每小时同步）。
+    // 浏览器不再直连 GitHub API —— 静态文件无额度限制，彻底避免匿名限流。
+    let pageDataPromise = null;
 
-    async function fetchWithCache(key, url, force = false, ttl = CACHE_TTL) {
-      // force 刷新时优先返回旧缓存（避免限流期间丢失已有数据）
-      const readCache = () => {
-        try {
-          const cached = localStorage.getItem(key);
-          if (!cached) return null;
-          const { data, ts } = JSON.parse(cached);
-          return { data, ts };
-        } catch (e) { return null; }
-      };
-      const writeCache = (data) => {
-        try { localStorage.setItem(key, JSON.stringify({ data, ts: Date.now() })); } catch (e) {}
-      };
-
-      if (!force) {
-        const c = readCache();
-        if (c && Date.now() - c.ts < ttl) return c.data;
-      }
-
-      try {
-        const res = await fetch(url);
-        if (!res.ok) {
-          if (res.status === 403 || res.status === 429) {
-            // 限流：若有旧缓存就用旧数据，避免页面崩溃
-            fetchMeta.rateLimited = true;
-            const resetHeader = res.headers.get('x-ratelimit-reset');
-            fetchMeta.resetAt = resetHeader ? Number(resetHeader) * 1000 : null;
-            const c = readCache();
-            if (c) { fetchMeta.stale = true; return c.data; }
-            throw new Error(rateLimitMsg(fetchMeta.resetAt));
-          }
-          if (res.status === 404) throw new Error('user not found');
-          throw new Error(`request failed (${res.status})`);
-        }
-        // 剩余额度极低时提前标记，避免用户无感知撞上限流
-        const remain = Number(res.headers.get('x-ratelimit-remaining'));
-        if (!Number.isNaN(remain) && remain <= 5) fetchMeta.rateLimited = true;
+    async function loadPageData(force = false) {
+      if (pageDataPromise && !force) return pageDataPromise;
+      pageDataPromise = (async () => {
+        const res = await fetch(`./data.json?t=${Date.now()}`, { cache: 'no-store' });
+        if (res.status === 404) throw new Error('data.json 未生成：请到仓库 Actions 页手动运行 sync-github-data');
+        if (!res.ok) throw new Error(`data.json 加载失败 (${res.status})`);
         const data = await res.json();
-        writeCache(data);
+        if (!Array.isArray(data.repos)) throw new Error('data.json 格式异常');
+        fetchMeta.reposTs = data.updatedAt ? new Date(data.updatedAt).getTime() : Date.now();
         return data;
+      })();
+      try {
+        return await pageDataPromise;
       } catch (e) {
-        // 网络异常：若有旧缓存就降级返回
-        const c = readCache();
-        if (c) { fetchMeta.stale = true; return c.data; }
+        pageDataPromise = null;
         throw e;
       }
     }
 
-    const fetchUser  = (f) => fetchWithCache('gh_user_v3',  `https://api.github.com/users/${GITHUB_USER}`, f);
-    const fetchRepos = (f) => fetchWithCache('gh_repos_v4', `https://api.github.com/users/${GITHUB_USER}/repos?sort=updated&per_page=100&type=owner`, f, 2 * 60 * 1000);
-    async function fetchCommits(repo, f) {
-      try {
-        // commits 变动慢，缓存 30 分钟，显著降低 GitHub 匿名 API 限流概率
-        return await fetchWithCache(`gh_c4_${repo}`, `https://api.github.com/repos/${GITHUB_USER}/${repo}/commits?per_page=5`, f, 30 * 60 * 1000);
-      } catch (e) { return []; }
-    }
+    const fetchUser  = async () => (await loadPageData()).user;
+    const fetchRepos = async () => (await loadPageData()).repos;
 
     // 语言 → 圆点颜色（GitHub 官方调色板的柔化版）
     const LANG_COLOR = {
@@ -880,41 +840,18 @@
       const [error, setError] = useState(null);
       const [filter, setFilter] = useState('all');
       const [syncInfo, setSyncInfo] = useState({ ts: null, stale: false, rateLimited: false });
-      const [commitsLoading, setCommitsLoading] = useState(false);
-      const [commitsError, setCommitsError] = useState(null);
-      const [logVisible, setLogVisible] = useState(false);
-      const commitsFetchedRef = useRef(false);
 
-      // 核心加载：user + repos + 最新 1 条 commit（仅 3 个 API 调用）
+      // 核心加载：data.json 一次包含 user + repos + commits（静态文件，无额度限制）
       const load = useCallback(async (force = false) => {
         setLoading(true); setError(null);
         fetchMeta.stale = false; fetchMeta.rateLimited = false;
         try {
-          const [u, reposData] = await Promise.all([fetchUser(force), fetchRepos(force)]);
+          const [u, reposData, data] = await Promise.all([fetchUser(), fetchRepos(), loadPageData(force)]);
           setUser(u);
           const sorted = [...reposData].sort((a, b) => new Date(b.pushed_at) - new Date(a.pushed_at));
           setRepos(sorted);
-          fetchMeta.reposTs = Date.now();
-
-          // Hero 终端只需要最新仓库的 1 条 commit
-          try {
-            const first = await fetchCommits(sorted[0].name, force);
-            const c = first && first[0];
-            if (c) {
-              setCommits(prev => {
-                const item = {
-                  sha: c.sha,
-                  message: c.commit?.message || '',
-                  author: c.commit?.author?.name || c.commit?.committer?.name || 'unknown',
-                  date: c.commit?.author?.date || c.commit?.committer?.date || sorted[0].pushed_at,
-                  repo: sorted[0].name,
-                  url: c.html_url
-                };
-                const rest = prev.filter(x => x.sha !== item.sha);
-                return [item, ...rest].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 24);
-              });
-            }
-          } catch (e) { /* hero commit 失败不阻塞主流程 */ }
+          // data.json 内的 commits 已按时间倒序
+          setCommits((data.commits || []).slice(0, 24));
         } catch (e) {
           setError(e.message || 'failed to load');
         } finally {
@@ -923,54 +860,7 @@
         }
       }, []);
 
-      // commits 同步：滚动到 log 区才触发（懒加载，省 8 次 API 调用）
-      const loadCommits = useCallback(async (force = false) => {
-        setCommitsLoading(true); setCommitsError(null);
-        try {
-          const reposData = await fetchRepos(false);
-          const sorted = [...reposData].sort((a, b) => new Date(b.pushed_at) - new Date(a.pushed_at)).slice(0, 8);
-          const results = await Promise.all(sorted.map(r => fetchCommits(r.name, force)));
-          const all = [];
-          sorted.forEach((r, i) => {
-            (results[i] || []).forEach(c => {
-              all.push({
-                sha: c.sha,
-                message: c.commit?.message || '',
-                author: c.commit?.author?.name || c.commit?.committer?.name || 'unknown',
-                date: c.commit?.author?.date || c.commit?.committer?.date || r.pushed_at,
-                repo: r.name,
-                url: c.html_url
-              });
-            });
-          });
-          all.sort((a, b) => new Date(b.date) - new Date(a.date));
-          setCommits(all.slice(0, 24));
-        } catch (e) {
-          setCommitsError(e.message || 'failed to load commits');
-        } finally {
-          setCommitsLoading(false);
-        }
-      }, []);
-
       useEffect(() => { load(false); }, [load]);
-
-      // log 区进入视口前 400px 就预加载 commits
-      useEffect(() => {
-        const el = document.getElementById('updates');
-        if (!el) return;
-        const obs = new IntersectionObserver(entries => {
-          if (entries[0].isIntersecting) setLogVisible(true);
-        }, { rootMargin: '400px' });
-        obs.observe(el);
-        return () => obs.disconnect();
-      }, []);
-
-      useEffect(() => {
-        if (logVisible && !commitsFetchedRef.current) {
-          commitsFetchedRef.current = true;
-          loadCommits(false);
-        }
-      }, [logVisible, loadCommits]);
 
       useEffect(() => {
         const handler = () => {
@@ -1032,7 +922,7 @@
                 hint={syncInfo.ts ? `sorted by activity · synced ${formatRelative(new Date(syncInfo.ts).toISOString())}` : 'sorted by recent activity'}
                 action={
                   <Button
-                    onClick={() => { load(true); loadCommits(true); }} disabled={loading} disableRipple
+                    onClick={() => load(true)} disabled={loading} disableRipple
                     className="font-mono"
                     sx={{
                       color: '#5B6B7F', fontSize: 12, fontWeight: 500, textTransform: 'none',
@@ -1127,18 +1017,18 @@
                 count={commits.length}
                 hint="recent commits across repos"
               />
-              {commitsLoading && commits.length === 0 ? (
+              {loading && commits.length === 0 ? (
                 <Box sx={{ py: 6, textAlign: 'center' }}>
                   <CircularProgress size={22} sx={{ color: '#6B8E9F' }} />
                 </Box>
-              ) : commitsError && commits.length === 0 ? (
+              ) : error && commits.length === 0 ? (
                 <Alert severity="warning" sx={{ borderRadius: 1.5, bgcolor: '#FFFFFF', border: '1px solid #E1E6EC' }}
                   action={
-                    <Button color="inherit" size="small" onClick={() => loadCommits(true)} className="font-mono" sx={{ fontSize: 11 }}>
+                    <Button color="inherit" size="small" onClick={() => load(true)} className="font-mono" sx={{ fontSize: 11 }}>
                       retry
                     </Button>
                   }>
-                  <Box className="font-mono" sx={{ fontSize: 12 }}>couldn't load commits: {commitsError}</Box>
+                  <Box className="font-mono" sx={{ fontSize: 12 }}>couldn't load data: {error}</Box>
                 </Alert>
               ) : (
                 <UpdatesList commits={commits} />
