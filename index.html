@@ -70,7 +70,7 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useCallback } = React;
+    const { useState, useEffect, useCallback, useRef } = React;
     const {
       Container, Box, Typography, Button, Chip, Stack,
       CircularProgress, Alert, AlertTitle
@@ -146,7 +146,15 @@
     }
 
     // 数据新鲜度追踪：用于在界面上提示「当前展示的是缓存数据」
-    const fetchMeta = { reposTs: null, stale: false, rateLimited: false };
+    const fetchMeta = { reposTs: null, stale: false, rateLimited: false, resetAt: null };
+
+    // 限流提示：带上额度恢复时间（x-ratelimit-reset 对浏览器 JS 可见）
+    function rateLimitMsg(resetAt) {
+      if (!resetAt || resetAt <= Date.now()) return 'GitHub rate-limited, try again in a few minutes';
+      const mins = Math.max(1, Math.round((resetAt - Date.now()) / 60000));
+      const t = new Date(resetAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+      return `GitHub 匿名额度已用完，${t} 自动恢复（约 ${mins} 分钟后）`;
+    }
 
     async function fetchWithCache(key, url, force = false, ttl = CACHE_TTL) {
       // force 刷新时优先返回旧缓存（避免限流期间丢失已有数据）
@@ -173,9 +181,11 @@
           if (res.status === 403 || res.status === 429) {
             // 限流：若有旧缓存就用旧数据，避免页面崩溃
             fetchMeta.rateLimited = true;
+            const resetHeader = res.headers.get('x-ratelimit-reset');
+            fetchMeta.resetAt = resetHeader ? Number(resetHeader) * 1000 : null;
             const c = readCache();
             if (c) { fetchMeta.stale = true; return c.data; }
-            throw new Error('GitHub rate-limited, try again in a few minutes');
+            throw new Error(rateLimitMsg(fetchMeta.resetAt));
           }
           if (res.status === 404) throw new Error('user not found');
           throw new Error(`request failed (${res.status})`);
@@ -870,7 +880,12 @@
       const [error, setError] = useState(null);
       const [filter, setFilter] = useState('all');
       const [syncInfo, setSyncInfo] = useState({ ts: null, stale: false, rateLimited: false });
+      const [commitsLoading, setCommitsLoading] = useState(false);
+      const [commitsError, setCommitsError] = useState(null);
+      const [logVisible, setLogVisible] = useState(false);
+      const commitsFetchedRef = useRef(false);
 
+      // 核心加载：user + repos + 最新 1 条 commit（仅 3 个 API 调用）
       const load = useCallback(async (force = false) => {
         setLoading(true); setError(null);
         fetchMeta.stale = false; fetchMeta.rateLimited = false;
@@ -881,10 +896,42 @@
           setRepos(sorted);
           fetchMeta.reposTs = Date.now();
 
-          const topRepos = sorted.slice(0, 8);
-          const results = await Promise.all(topRepos.map(r => fetchCommits(r.name, force)));
+          // Hero 终端只需要最新仓库的 1 条 commit
+          try {
+            const first = await fetchCommits(sorted[0].name, force);
+            const c = first && first[0];
+            if (c) {
+              setCommits(prev => {
+                const item = {
+                  sha: c.sha,
+                  message: c.commit?.message || '',
+                  author: c.commit?.author?.name || c.commit?.committer?.name || 'unknown',
+                  date: c.commit?.author?.date || c.commit?.committer?.date || sorted[0].pushed_at,
+                  repo: sorted[0].name,
+                  url: c.html_url
+                };
+                const rest = prev.filter(x => x.sha !== item.sha);
+                return [item, ...rest].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 24);
+              });
+            }
+          } catch (e) { /* hero commit 失败不阻塞主流程 */ }
+        } catch (e) {
+          setError(e.message || 'failed to load');
+        } finally {
+          setSyncInfo({ ts: fetchMeta.reposTs, stale: fetchMeta.stale, rateLimited: fetchMeta.rateLimited });
+          setLoading(false);
+        }
+      }, []);
+
+      // commits 同步：滚动到 log 区才触发（懒加载，省 8 次 API 调用）
+      const loadCommits = useCallback(async (force = false) => {
+        setCommitsLoading(true); setCommitsError(null);
+        try {
+          const reposData = await fetchRepos(false);
+          const sorted = [...reposData].sort((a, b) => new Date(b.pushed_at) - new Date(a.pushed_at)).slice(0, 8);
+          const results = await Promise.all(sorted.map(r => fetchCommits(r.name, force)));
           const all = [];
-          topRepos.forEach((r, i) => {
+          sorted.forEach((r, i) => {
             (results[i] || []).forEach(c => {
               all.push({
                 sha: c.sha,
@@ -899,14 +946,31 @@
           all.sort((a, b) => new Date(b.date) - new Date(a.date));
           setCommits(all.slice(0, 24));
         } catch (e) {
-          setError(e.message || 'failed to load');
+          setCommitsError(e.message || 'failed to load commits');
         } finally {
-          setSyncInfo({ ts: fetchMeta.reposTs, stale: fetchMeta.stale, rateLimited: fetchMeta.rateLimited });
-          setLoading(false);
+          setCommitsLoading(false);
         }
       }, []);
 
       useEffect(() => { load(false); }, [load]);
+
+      // log 区进入视口前 400px 就预加载 commits
+      useEffect(() => {
+        const el = document.getElementById('updates');
+        if (!el) return;
+        const obs = new IntersectionObserver(entries => {
+          if (entries[0].isIntersecting) setLogVisible(true);
+        }, { rootMargin: '400px' });
+        obs.observe(el);
+        return () => obs.disconnect();
+      }, []);
+
+      useEffect(() => {
+        if (logVisible && !commitsFetchedRef.current) {
+          commitsFetchedRef.current = true;
+          loadCommits(false);
+        }
+      }, [logVisible, loadCommits]);
 
       useEffect(() => {
         const handler = () => {
@@ -968,7 +1032,7 @@
                 hint={syncInfo.ts ? `sorted by activity · synced ${formatRelative(new Date(syncInfo.ts).toISOString())}` : 'sorted by recent activity'}
                 action={
                   <Button
-                    onClick={() => load(true)} disabled={loading} disableRipple
+                    onClick={() => { load(true); loadCommits(true); }} disabled={loading} disableRipple
                     className="font-mono"
                     sx={{
                       color: '#5B6B7F', fontSize: 12, fontWeight: 500, textTransform: 'none',
@@ -1063,13 +1127,18 @@
                 count={commits.length}
                 hint="recent commits across repos"
               />
-              {loading ? (
+              {commitsLoading && commits.length === 0 ? (
                 <Box sx={{ py: 6, textAlign: 'center' }}>
                   <CircularProgress size={22} sx={{ color: '#6B8E9F' }} />
                 </Box>
-              ) : error ? (
-                <Alert severity="warning" sx={{ borderRadius: 1.5, bgcolor: '#FFFFFF', border: '1px solid #E1E6EC' }}>
-                  <Box className="font-mono" sx={{ fontSize: 12 }}>couldn't load commits: {error}</Box>
+              ) : commitsError && commits.length === 0 ? (
+                <Alert severity="warning" sx={{ borderRadius: 1.5, bgcolor: '#FFFFFF', border: '1px solid #E1E6EC' }}
+                  action={
+                    <Button color="inherit" size="small" onClick={() => loadCommits(true)} className="font-mono" sx={{ fontSize: 11 }}>
+                      retry
+                    </Button>
+                  }>
+                  <Box className="font-mono" sx={{ fontSize: 12 }}>couldn't load commits: {commitsError}</Box>
                 </Alert>
               ) : (
                 <UpdatesList commits={commits} />
